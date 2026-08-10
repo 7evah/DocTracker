@@ -47,6 +47,22 @@ return [
             'report' => false,
         ],
 
+        /*
+        | Technical documents. Private by design: `serve` is false and there
+        | is no `url`, so a file here can only leave the server through the
+        | authorised download controller (§32, §53).
+        |
+        | Swapping this to s3/azure later is a config change only — nothing in
+        | the application builds paths against the local filesystem.
+        */
+        'documents' => [
+            'driver' => env('DOCUMENTS_DISK_DRIVER', 'local'),
+            'root' => storage_path('app/private'),
+            'serve' => false,
+            'throw' => true,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

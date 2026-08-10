@@ -1,6 +1,11 @@
 <?php
 
+use App\Http\Controllers\DocumentDownloadController;
 use App\Livewire\Dashboard;
+use App\Livewire\Documents\Create as DocumentCreate;
+use App\Livewire\Documents\Edit as DocumentEdit;
+use App\Livewire\Documents\Index as DocumentIndex;
+use App\Livewire\Documents\Show as DocumentShow;
 use App\Livewire\Projects\Form as ProjectForm;
 use App\Livewire\Projects\Index as ProjectIndex;
 use App\Livewire\Projects\Show as ProjectShow;
@@ -55,11 +60,23 @@ Route::middleware(['auth'])->group(function () {
     Route::get('projects/{project}', ProjectShow::class)->name('projects.show');
     Route::get('projects/{project}/edit', ProjectForm::class)->name('projects.edit');
 
-    // --- Phase: Documents ------------------------------------------------
-    Route::view('documents', 'placeholder', [
-        'module' => 'documents',
-        'icon' => 'document-text',
-    ])->middleware('can:'.Permissions::DOCUMENTS_VIEW)->name('documents.index');
+    /*
+    |----------------------------------------------------------------------
+    | Documents
+    |----------------------------------------------------------------------
+    */
+    Route::get('documents', DocumentIndex::class)->name('documents.index');
+    Route::get('documents/create', DocumentCreate::class)->name('documents.create');
+    Route::get('documents/{document}', DocumentShow::class)->name('documents.show');
+    Route::get('documents/{document}/edit', DocumentEdit::class)->name('documents.edit');
+
+    /*
+    | The only way a stored file leaves the server. The version is bound
+    | alongside the document so the controller can verify it belongs to it,
+    | rather than trusting a bare version id (§32, §53).
+    */
+    Route::get('documents/{document}/versions/{version}/download', DocumentDownloadController::class)
+        ->name('documents.download');
 
     // --- Phase: Reviews --------------------------------------------------
     Route::view('reviews', 'placeholder', [

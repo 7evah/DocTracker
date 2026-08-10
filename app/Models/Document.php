@@ -36,6 +36,16 @@ class Document extends Model
         ];
     }
 
+    /**
+     * Only metadata edits are auto-logged. Lifecycle events (created,
+     * revision uploaded, submitted, archived, downloaded) are logged
+     * explicitly by DocumentService with richer descriptions, so recording
+     * them here too would double every entry in the audit trail (§34).
+     *
+     * @var list<string>
+     */
+    protected static $recordEvents = ['updated'];
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
