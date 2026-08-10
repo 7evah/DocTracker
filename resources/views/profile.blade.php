@@ -1,29 +1,14 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Profile') }}
-        </h2>
-    </x-slot>
+{{--
+    Account self-service only. Deleting a user is an administrative action
+    handled in Administration (§29) — an engineer must not be able to remove
+    an account that owns document and approval history (§34 audit trail).
+--}}
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    <livewire:profile.update-profile-information-form />
-                </div>
-            </div>
+<x-layouts.app :title="__('auth.profile.title')">
+    <x-page-header :title="__('auth.profile.title')" />
 
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    <livewire:profile.update-password-form />
-                </div>
-            </div>
-
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    <livewire:profile.delete-user-form />
-                </div>
-            </div>
-        </div>
+    <div class="mt-6 flex flex-col gap-6">
+        <livewire:profile.update-profile-information-form />
+        <livewire:profile.update-password-form />
     </div>
-</x-app-layout>
+</x-layouts.app>

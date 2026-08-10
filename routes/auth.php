@@ -4,10 +4,12 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
+/*
+| No self-registration: DocFlow accounts are provisioned by an administrator
+| (§12 lists login / forgot / reset / profile only, and §29 makes user
+| creation an admin responsibility).
+*/
 Route::middleware('guest')->group(function () {
-    Volt::route('register', 'pages.auth.register')
-        ->name('register');
-
     Volt::route('login', 'pages.auth.login')
         ->name('login');
 

@@ -5,7 +5,7 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
-new #[Layout('layouts.guest')] class extends Component
+new #[Layout('components.layouts.auth')] class extends Component
 {
     public string $password = '';
 
@@ -34,29 +34,22 @@ new #[Layout('layouts.guest')] class extends Component
 }; ?>
 
 <div>
-    <div class="mb-4 text-sm text-gray-600">
-        {{ __('This is a secure area of the application. Please confirm your password before continuing.') }}
-    </div>
+    <flux:heading size="xl" level="1">{{ __('auth.confirm_password.title') }}</flux:heading>
+    <flux:subheading class="mt-1 mb-6">{{ __('auth.confirm_password.intro') }}</flux:subheading>
 
-    <form wire:submit="confirmPassword">
-        <!-- Password -->
-        <div>
-            <x-input-label for="password" :value="__('Password')" />
+    <form wire:submit="confirmPassword" class="flex flex-col gap-5">
+        <flux:input
+            wire:model="password"
+            :label="__('auth.login.password')"
+            type="password"
+            required
+            autofocus
+            autocomplete="current-password"
+            viewable
+        />
 
-            <x-text-input wire:model="password"
-                          id="password"
-                          class="block mt-1 w-full"
-                          type="password"
-                          name="password"
-                          required autocomplete="current-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <div class="flex justify-end mt-4">
-            <x-primary-button>
-                {{ __('Confirm') }}
-            </x-primary-button>
-        </div>
+        <flux:button type="submit" variant="primary" class="w-full">
+            {{ __('auth.confirm_password.submit') }}
+        </flux:button>
     </form>
 </div>

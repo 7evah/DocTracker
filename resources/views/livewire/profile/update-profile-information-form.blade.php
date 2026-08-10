@@ -9,20 +9,26 @@ use Livewire\Volt\Component;
 new class extends Component
 {
     public string $name = '';
+
     public string $email = '';
 
-    /**
-     * Mount the component.
-     */
+    public string $department = '';
+
+    public string $job_title = '';
+
+    public string $phone = '';
+
     public function mount(): void
     {
-        $this->name = Auth::user()->name;
-        $this->email = Auth::user()->email;
+        $user = Auth::user();
+
+        $this->name = $user->name;
+        $this->email = $user->email;
+        $this->department = $user->department ?? '';
+        $this->job_title = $user->job_title ?? '';
+        $this->phone = $user->phone ?? '';
     }
 
-    /**
-     * Update the profile information for the currently authenticated user.
-     */
     public function updateProfileInformation(): void
     {
         $user = Auth::user();
@@ -30,6 +36,9 @@ new class extends Component
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
+            'department' => ['nullable', 'string', 'max:255'],
+            'job_title' => ['nullable', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:32'],
         ]);
 
         $user->fill($validated);
@@ -41,11 +50,10 @@ new class extends Component
         $user->save();
 
         $this->dispatch('profile-updated', name: $user->name);
+
+        Flux::toast(text: __('auth.profile.saved'), variant: 'success');
     }
 
-    /**
-     * Send an email verification notification to the current user.
-     */
     public function sendVerification(): void
     {
         $user = Auth::user();
@@ -62,54 +70,58 @@ new class extends Component
     }
 }; ?>
 
-<section>
-    <header>
-        <h2 class="text-lg font-medium text-gray-900">
-            {{ __('Profile Information') }}
-        </h2>
+<x-panel :title="__('auth.profile.information')" icon="user-circle">
+    <p class="mb-5 text-sm text-zinc-500 dark:text-zinc-400">{{ __('auth.profile.information_hint') }}</p>
 
-        <p class="mt-1 text-sm text-gray-600">
-            {{ __("Update your account's profile information and email address.") }}
-        </p>
-    </header>
+    <form wire:submit="updateProfileInformation" class="flex max-w-xl flex-col gap-5">
+        <flux:input wire:model="name" :label="__('common.labels.name')" required autocomplete="name" />
 
-    <form wire:submit="updateProfileInformation" class="mt-6 space-y-6">
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input wire:model="name" id="name" name="name" type="text" class="mt-1 block w-full" required autofocus autocomplete="name" />
-            <x-input-error class="mt-2" :messages="$errors->get('name')" />
-        </div>
+        <flux:input wire:model="email" :label="__('common.labels.email')" type="email" required autocomplete="username" />
 
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input wire:model="email" id="email" name="email" type="email" class="mt-1 block w-full" required autocomplete="username" />
-            <x-input-error class="mt-2" :messages="$errors->get('email')" />
+        @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
+            <flux:callout variant="warning" icon="exclamation-triangle">
+                <flux:callout.text>
+                    {{ __('Votre adresse e-mail n’est pas vérifiée.') }}
+                    <flux:callout.link href="#" wire:click.prevent="sendVerification">
+                        {{ __('Renvoyer le lien de vérification') }}
+                    </flux:callout.link>
+                </flux:callout.text>
+            </flux:callout>
 
-            @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
-                <div>
-                    <p class="text-sm mt-2 text-gray-800">
-                        {{ __('Your email address is unverified.') }}
-
-                        <button wire:click.prevent="sendVerification" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            {{ __('Click here to re-send the verification email.') }}
-                        </button>
-                    </p>
-
-                    @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 font-medium text-sm text-green-600">
-                            {{ __('A new verification link has been sent to your email address.') }}
-                        </p>
-                    @endif
-                </div>
+            @if (session('status') === 'verification-link-sent')
+                <flux:text class="text-green-600">{{ __('auth.verify_email.sent') }}</flux:text>
             @endif
+        @endif
+
+        {{-- Single column on mobile, two from `sm` (§42). --}}
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <flux:input wire:model="department" :label="__('common.labels.department')" />
+            <flux:input wire:model="job_title" :label="__('Fonction')" />
         </div>
 
-        <div class="flex items-center gap-4">
-            <x-primary-button>{{ __('Save') }}</x-primary-button>
+        <flux:input wire:model="phone" :label="__('common.labels.phone')" type="tel" />
 
-            <x-action-message class="me-3" on="profile-updated">
-                {{ __('Saved.') }}
-            </x-action-message>
+        {{-- Role is administrative: shown read-only, changed only in admin (§29). --}}
+        @if ($role = auth()->user()->primaryRole())
+            <flux:field>
+                <flux:label>{{ __('common.labels.role') }}</flux:label>
+                <div><flux:badge color="zinc">{{ __('enums.role.'.$role) }}</flux:badge></div>
+                <flux:description>{{ __('enums.role_description.'.$role) }}</flux:description>
+            </flux:field>
+        @endif
+
+        <div class="flex items-center gap-3">
+            <flux:button type="submit" variant="primary">{{ __('common.actions.save') }}</flux:button>
+
+            <flux:text
+                x-data="{ shown: false }"
+                x-on:profile-updated.window="shown = true; setTimeout(() => shown = false, 2500)"
+                x-show="shown"
+                x-cloak
+                class="text-sm text-green-600"
+            >
+                {{ __('auth.profile.saved') }}
+            </flux:text>
         </div>
     </form>
-</section>
+</x-panel>

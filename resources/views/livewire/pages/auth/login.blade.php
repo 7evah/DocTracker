@@ -3,15 +3,13 @@
 use App\Livewire\Forms\LoginForm;
 use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Volt\Component;
 
-new #[Layout('layouts.guest')] class extends Component
+new #[Layout('components.layouts.auth')] class extends Component
 {
     public LoginForm $form;
 
-    /**
-     * Handle an incoming authentication request.
-     */
     public function login(): void
     {
         $this->validate();
@@ -25,47 +23,66 @@ new #[Layout('layouts.guest')] class extends Component
 }; ?>
 
 <div>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+    <flux:heading size="xl" level="1">{{ __('auth.login.heading') }}</flux:heading>
+    <flux:subheading class="mt-1 mb-6">{{ __('auth.login.subheading') }}</flux:subheading>
 
-    <form wire:submit="login">
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input wire:model="form.email" id="email" class="block mt-1 w-full" type="email" name="email" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('form.email')" class="mt-2" />
-        </div>
+    @if (session('status'))
+        <flux:callout variant="success" icon="check-circle" class="mb-4">
+            <flux:callout.text>{{ session('status') }}</flux:callout.text>
+        </flux:callout>
+    @endif
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
+    <form wire:submit="login" class="flex flex-col gap-5">
+        <flux:input
+            wire:model="form.email"
+            :label="__('auth.login.email')"
+            type="email"
+            name="email"
+            required
+            autofocus
+            autocomplete="username"
+            placeholder="prenom.nom@jesa.com"
+        />
 
-            <x-text-input wire:model="form.password" id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
+        <flux:field>
+            <div class="flex items-center justify-between">
+                <flux:label>{{ __('auth.login.password') }}</flux:label>
 
-            <x-input-error :messages="$errors->get('form.password')" class="mt-2" />
-        </div>
+                @if (Route::has('password.request'))
+                    <flux:link :href="route('password.request')" variant="subtle" class="text-xs" wire:navigate>
+                        {{ __('auth.login.forgot') }}
+                    </flux:link>
+                @endif
+            </div>
 
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember" class="inline-flex items-center">
-                <input wire:model="form.remember" id="remember" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
-                <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
-            </label>
-        </div>
+            <flux:input
+                wire:model="form.password"
+                type="password"
+                name="password"
+                required
+                autocomplete="current-password"
+                viewable
+            />
 
-        <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}" wire:navigate>
-                    {{ __('Forgot your password?') }}
-                </a>
-            @endif
+            <flux:error name="form.password" />
+        </flux:field>
 
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
-        </div>
+        <flux:checkbox wire:model="form.remember" :label="__('auth.login.remember')" />
+
+        <flux:button type="submit" variant="primary" class="w-full">
+            <span wire:loading.remove wire:target="login">{{ __('auth.login.submit') }}</span>
+            <span wire:loading wire:target="login">{{ __('common.states.loading') }}</span>
+        </flux:button>
     </form>
+
+    {{-- Demo credentials are seeded in local only; surfacing them here keeps
+         the prototype walkthrough friction-free (§55). --}}
+    @if (app()->environment('local'))
+        <div class="mt-8 rounded-lg border border-dashed border-zinc-300 p-3 text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+            <p class="font-medium text-zinc-700 dark:text-zinc-300">{{ __('Comptes de démonstration') }}</p>
+            <p class="mt-1">admin@docflow.test · chef.projet@docflow.test · ingenieur1@docflow.test</p>
+            <p>verificateur1@docflow.test · approbateur@docflow.test · lecteur@docflow.test</p>
+            <p class="mt-1">{{ __('Mot de passe') }} : <code class="font-mono">password</code></p>
+        </div>
+    @endif
 </div>
