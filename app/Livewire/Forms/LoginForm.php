@@ -38,6 +38,24 @@ class LoginForm extends Form
             ]);
         }
 
+        /*
+        | Deactivated and suspended accounts must not hold a session (§29).
+        | Checked after the credential check so this never reveals whether an
+        | address exists — a wrong password and a disabled account are
+        | indistinguishable to an attacker until the password is correct.
+        */
+        if (! Auth::user()->status->canLogin()) {
+            Auth::guard('web')->logout();
+
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'form.email' => trans('auth.inactive'),
+            ]);
+        }
+
+        Auth::user()->forceFill(['last_active_at' => now()])->saveQuietly();
+
         RateLimiter::clear($this->throttleKey());
     }
 
