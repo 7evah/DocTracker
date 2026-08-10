@@ -1,3 +1,92 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import '../../vendor/livewire/flux/dist/flux.css';
+
+@source '../views';
+@source '../../app';
+@source '../../vendor/livewire/flux/stubs/**/*.blade.php';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+|--------------------------------------------------------------------------
+| DocFlow / JESA design tokens
+|--------------------------------------------------------------------------
+| Corporate engineering palette. Kept deliberately narrow: one brand blue
+| ramp, one neutral ramp, and semantic status colours. Every status is also
+| paired with an icon + label in the UI, never colour alone (see §38).
+*/
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+    /* Brand — JESA blue */
+    --color-brand-50: #eef4fa;
+    --color-brand-100: #d6e5f2;
+    --color-brand-200: #b0cbe5;
+    --color-brand-300: #7ea9d3;
+    --color-brand-400: #4a82bd;
+    --color-brand-500: #005a9c;
+    --color-brand-600: #004d86;
+    --color-brand-700: #003a70;
+    --color-brand-800: #002d57;
+    --color-brand-900: #001f3d;
+    --color-brand-950: #00142a;
+
+    /* Surfaces */
+    --color-surface: #f5f7fa;
+    --color-surface-raised: #ffffff;
+
+    /* Document status */
+    --color-status-draft: #64748b;
+    --color-status-review: #0369a1;
+    --color-status-revision: #b45309;
+    --color-status-approved: #15803d;
+    --color-status-rejected: #b91c1c;
+    --color-status-archived: #475569;
+
+    /* Priority */
+    --color-priority-low: #64748b;
+    --color-priority-medium: #0369a1;
+    --color-priority-high: #b45309;
+    --color-priority-critical: #b91c1c;
+}
+
+/*
+| Flux drives its accent colour from these variables, so brand colour flows
+| into every Flux component (buttons, tabs, links) without per-component overrides.
+*/
+@layer theme {
+    :root,
+    :host {
+        --color-accent: var(--color-brand-700);
+        --color-accent-content: var(--color-brand-700);
+        --color-accent-foreground: #ffffff;
+    }
+
+    .dark {
+        --color-accent: var(--color-brand-300);
+        --color-accent-content: var(--color-brand-200);
+        --color-accent-foreground: var(--color-brand-950);
+    }
+}
+
+@layer base {
+    /* Flux resets buttons; restore a sane pointer for our own bare buttons. */
+    button:not(:disabled),
+    [role='button']:not(:disabled) {
+        cursor: pointer;
+    }
+
+    /* Visible focus for keyboard users everywhere (§38 accessibility). */
+    :focus-visible {
+        outline: 2px solid var(--color-brand-500);
+        outline-offset: 2px;
+    }
+}
+
+@utility no-scrollbar {
+    &::-webkit-scrollbar {
+        display: none;
+    }
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}

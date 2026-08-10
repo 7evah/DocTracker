@@ -18,6 +18,10 @@
 /public/storage
 /storage/*.key
 /storage/pail
+/storage/debugbar
+# Uploaded technical documents must never enter version control (§52).
+/storage/app/private/documents
+/storage/app/public/avatars
 /vendor
 Homestead.json
 Homestead.yaml
