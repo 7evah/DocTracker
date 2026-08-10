@@ -9,6 +9,8 @@ use App\Livewire\Documents\Show as DocumentShow;
 use App\Livewire\Projects\Form as ProjectForm;
 use App\Livewire\Projects\Index as ProjectIndex;
 use App\Livewire\Projects\Show as ProjectShow;
+use App\Livewire\Reviews\Index as ReviewIndex;
+use App\Livewire\Reviews\Show as ReviewShow;
 use App\Support\Permissions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -78,11 +80,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('documents/{document}/versions/{version}/download', DocumentDownloadController::class)
         ->name('documents.download');
 
-    // --- Phase: Reviews --------------------------------------------------
-    Route::view('reviews', 'placeholder', [
-        'module' => 'reviews',
-        'icon' => 'eye',
-    ])->middleware('can:'.Permissions::REVIEWS_VIEW)->name('reviews.index');
+    /*
+    |----------------------------------------------------------------------
+    | Reviews
+    |----------------------------------------------------------------------
+    */
+    Route::get('reviews', ReviewIndex::class)->name('reviews.index');
+    Route::get('reviews/{review}', ReviewShow::class)->name('reviews.show');
 
     // --- Phase: Approvals ------------------------------------------------
     Route::view('approvals', 'placeholder', [

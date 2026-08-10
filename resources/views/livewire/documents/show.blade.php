@@ -65,6 +65,12 @@
                 @endif
             @endcan
 
+            @can('assign', App\Models\Review::class)
+                @if (in_array($document->status, [App\Enums\DocumentStatus::Draft, App\Enums\DocumentStatus::NeedsRevision, App\Enums\DocumentStatus::UnderReview], true))
+                    <livewire:documents.assign-reviewers :document="$document" :key="'assign-'.$document->id.'-'.$document->current_revision" />
+                @endif
+            @endcan
+
             @can('submitForReview', $document)
                 @if (in_array($document->status, [App\Enums\DocumentStatus::Draft, App\Enums\DocumentStatus::NeedsRevision], true))
                     <flux:button wire:click="submitForReview" icon="paper-airplane" variant="primary">
@@ -295,9 +301,89 @@
             @endif
         </x-panel>
 
+    {{-- Reviews on the current revision (§23) --}}
+    @elseif ($tab === 'reviews')
+        <x-panel :padded="false">
+            @if ($reviews->isEmpty())
+                <div class="p-4">
+                    <x-empty-state
+                        icon="eye"
+                        :title="__('reviews.empty.none_on_document')"
+                        :description="__('reviews.empty.none_on_document_hint')"
+                        compact
+                    />
+                </div>
+            @else
+                <ol class="flex flex-col">
+                    @foreach ($reviews as $review)
+                        <li
+                            wire:key="doc-review-{{ $review->id }}"
+                            @class([
+                                'flex flex-col gap-3 p-4 sm:flex-row sm:items-center',
+                                'border-b border-zinc-200 dark:border-zinc-700' => ! $loop->last,
+                            ])
+                        >
+                            <div class="flex min-w-0 flex-1 items-center gap-3">
+                                <x-user-avatar :user="$review->reviewer" size="sm" class="shrink-0" />
+                                <div class="min-w-0">
+                                    <p class="truncate text-sm font-medium">{{ $review->reviewer?->name }}</p>
+                                    <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                                        {{ __('reviews.on_revision', ['revision' => $review->documentVersion?->revision]) }}
+                                        @if ($review->deadline)
+                                            · {{ $review->deadline->translatedFormat('d M Y') }}
+                                        @endif
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="flex shrink-0 flex-wrap items-center gap-2">
+                                <x-badge :status="$review->priority" />
+                                <x-badge :status="$review->status" />
+
+                                @if ($review->isOverdue())
+                                    <flux:badge size="sm" color="red" icon="exclamation-triangle">
+                                        {{ __('reviews.overdue') }}
+                                    </flux:badge>
+                                @endif
+
+                                <flux:button
+                                    :href="route('reviews.show', $review)"
+                                    size="xs"
+                                    variant="ghost"
+                                    icon="arrow-right"
+                                    wire:navigate
+                                >
+                                    {{ __('reviews.actions.open') }}
+                                </flux:button>
+                            </div>
+                        </li>
+                    @endforeach
+                </ol>
+            @endif
+        </x-panel>
+
+    {{-- All review comments across this document's revisions (§25) --}}
+    @elseif ($tab === 'comments')
+        <x-panel>
+            @if ($comments->isEmpty())
+                <x-empty-state
+                    icon="chat-bubble-left-right"
+                    :title="__('reviews.comments.empty')"
+                    :description="__('reviews.comments.empty_hint')"
+                    compact
+                />
+            @else
+                <div class="flex flex-col gap-5">
+                    @foreach ($comments as $item)
+                        <x-comment :comment="$item" wire:key="doc-comment-{{ $item->id }}" />
+                    @endforeach
+                </div>
+            @endif
+        </x-panel>
+
     @else
         <x-empty-state
-            icon="{{ ['reviews' => 'eye', 'approvals' => 'check-badge', 'comments' => 'chat-bubble-left-right', 'tasks' => 'clipboard-document-check'][$tab] ?? 'inbox' }}"
+            icon="{{ ['approvals' => 'check-badge', 'tasks' => 'clipboard-document-check'][$tab] ?? 'inbox' }}"
             :title="__('dashboard.coming_soon')"
             :description="__('Ce contenu sera disponible avec le module correspondant.')"
         />

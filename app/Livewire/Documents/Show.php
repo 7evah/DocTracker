@@ -4,10 +4,12 @@ namespace App\Livewire\Documents;
 
 use App\Enums\DocumentStatus;
 use App\Models\Document;
+use App\Models\ReviewComment;
 use App\Services\DocumentService;
 use App\Services\DocumentStorage;
 use Flux\Flux;
 use Illuminate\View\View;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -36,6 +38,14 @@ class Show extends Component
             'discipline:id,code,name',
             'creator:id,name,avatar_path',
         ]);
+    }
+
+    /** Re-read the document after the assign-reviewers child changes its status. */
+    #[On('reviews-assigned')]
+    public function refreshDocument(): void
+    {
+        $this->document->refresh();
+        $this->tab = 'reviews';
     }
 
     /*
@@ -129,6 +139,15 @@ class Show extends Component
         return view('livewire.documents.show', [
             'versions' => $versions,
             'currentVersion' => $versions->firstWhere('revision', $this->document->current_revision) ?? $versions->first(),
+            'reviews' => $this->document->reviews()
+                ->with(['reviewer:id,name,avatar_path', 'documentVersion:id,revision'])
+                ->latest('reviews.id')
+                ->get(),
+            'comments' => ReviewComment::query()
+                ->whereIn('review_id', $this->document->reviews()->select('reviews.id'))
+                ->with(['author:id,name,avatar_path', 'resolver:id,name'])
+                ->latest()
+                ->get(),
             'activities' => $this->document->activities()
                 ->with('causer:id,name,avatar_path')
                 ->latest()

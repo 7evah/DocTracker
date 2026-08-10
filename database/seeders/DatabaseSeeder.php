@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
                 DemoUserSeeder::class,
                 ProjectSeeder::class,
                 DocumentSeeder::class,
+                ReviewSeeder::class,
             ]);
         }
     }
