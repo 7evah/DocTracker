@@ -200,6 +200,17 @@
     {{-- Global toast host: any component may fire Flux::toast() (§37). --}}
     <flux:toast position="bottom end" />
 
+    {{-- Replays a session flash as a toast after a redirect, so an action that
+         navigates still confirms itself to the user. --}}
+    @if (session('toast'))
+        <div
+            x-data
+            x-init="$dispatch('toast-show', { text: @js(session('toast')), variant: 'success' })"
+            aria-live="polite"
+            class="sr-only"
+        >{{ session('toast') }}</div>
+    @endif
+
     @fluxScripts
 </body>
 </html>

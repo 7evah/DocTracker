@@ -1,6 +1,9 @@
 <?php
 
 use App\Livewire\Dashboard;
+use App\Livewire\Projects\Form as ProjectForm;
+use App\Livewire\Projects\Index as ProjectIndex;
+use App\Livewire\Projects\Show as ProjectShow;
 use App\Support\Permissions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -40,11 +43,17 @@ Route::middleware(['auth'])->group(function () {
         return redirect()->route('login');
     })->name('logout');
 
-    // --- Phase: Projects -------------------------------------------------
-    Route::view('projects', 'placeholder', [
-        'module' => 'projects',
-        'icon' => 'folder',
-    ])->middleware('can:'.Permissions::PROJECTS_VIEW)->name('projects.index');
+    /*
+    |----------------------------------------------------------------------
+    | Projects
+    |----------------------------------------------------------------------
+    | Authorization is enforced by ProjectPolicy inside each component, so a
+    | crafted request cannot bypass it by skipping route middleware (§13).
+    */
+    Route::get('projects', ProjectIndex::class)->name('projects.index');
+    Route::get('projects/create', ProjectForm::class)->name('projects.create');
+    Route::get('projects/{project}', ProjectShow::class)->name('projects.show');
+    Route::get('projects/{project}/edit', ProjectForm::class)->name('projects.edit');
 
     // --- Phase: Documents ------------------------------------------------
     Route::view('documents', 'placeholder', [

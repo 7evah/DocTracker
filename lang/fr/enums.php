@@ -11,6 +11,37 @@ return [
         'archived' => 'Archivé',
     ],
 
+    'project_status' => [
+        'planning' => 'En préparation',
+        'active' => 'En cours',
+        'on_hold' => 'Suspendu',
+        'completed' => 'Terminé',
+        'cancelled' => 'Annulé',
+    ],
+
+    'review_status' => [
+        'pending' => 'En attente',
+        'in_progress' => 'En cours',
+        'approved' => 'Approuvé',
+        'revision_requested' => 'Révision demandée',
+        'rejected' => 'Rejeté',
+    ],
+
+    'approval_status' => [
+        'pending' => 'En attente',
+        'in_progress' => 'En cours',
+        'approved' => 'Approuvé',
+        'rejected' => 'Rejeté',
+        'skipped' => 'Ignoré',
+    ],
+
+    'task_status' => [
+        'open' => 'Ouverte',
+        'in_progress' => 'En cours',
+        'completed' => 'Terminée',
+        'cancelled' => 'Annulée',
+    ],
+
     'priority' => [
         'low' => 'Basse',
         'medium' => 'Moyenne',
