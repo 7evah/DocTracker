@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Enums\UserStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Volt\Volt;
@@ -54,32 +55,57 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_navigation_menu_can_be_rendered(): void
+    /** Deactivated accounts must not obtain a session even with valid credentials. */
+    public function test_inactive_users_can_not_authenticate(): void
     {
         $user = User::factory()->create();
+        $user->forceFill(['status' => UserStatus::Inactive])->save();
 
-        $this->actingAs($user);
+        $component = Volt::test('pages.auth.login')
+            ->set('form.email', $user->email)
+            ->set('form.password', 'password');
 
-        $response = $this->get('/dashboard');
+        $component->call('login');
 
-        $response
-            ->assertOk()
-            ->assertSeeVolt('layout.navigation');
+        $component->assertHasErrors('form.email');
+
+        $this->assertGuest();
+    }
+
+    public function test_suspended_users_can_not_authenticate(): void
+    {
+        $user = User::factory()->create();
+        $user->forceFill(['status' => UserStatus::Suspended])->save();
+
+        Volt::test('pages.auth.login')
+            ->set('form.email', $user->email)
+            ->set('form.password', 'password')
+            ->call('login')
+            ->assertHasErrors('form.email');
+
+        $this->assertGuest();
+    }
+
+    public function test_successful_login_records_last_activity(): void
+    {
+        $user = User::factory()->create(['last_active_at' => null]);
+
+        Volt::test('pages.auth.login')
+            ->set('form.email', $user->email)
+            ->set('form.password', 'password')
+            ->call('login')
+            ->assertHasNoErrors();
+
+        $this->assertNotNull($user->fresh()->last_active_at);
     }
 
     public function test_users_can_logout(): void
     {
         $user = User::factory()->create();
 
-        $this->actingAs($user);
-
-        $component = Volt::test('layout.navigation');
-
-        $component->call('logout');
-
-        $component
-            ->assertHasNoErrors()
-            ->assertRedirect('/');
+        $this->actingAs($user)
+            ->post(route('logout'))
+            ->assertRedirect(route('login'));
 
         $this->assertGuest();
     }
