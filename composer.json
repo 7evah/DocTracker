@@ -9,7 +9,6 @@
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.1",
         "intervention/image-laravel": "^1.5",
-        "laravel/fortify": "^1.37",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
         "livewire/flux": "^2.15",
