@@ -6,6 +6,7 @@ use App\Enums\UserStatus;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
@@ -57,9 +58,34 @@ class User extends Authenticatable
     |--------------------------------------------------------------------------
     */
 
-    public function managedProjects()
+    public function managedProjects(): HasMany
     {
         return $this->hasMany(Project::class, 'manager_id');
+    }
+
+    public function createdDocuments(): HasMany
+    {
+        return $this->hasMany(Document::class, 'created_by');
+    }
+
+    public function uploadedVersions(): HasMany
+    {
+        return $this->hasMany(DocumentVersion::class, 'uploaded_by');
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class, 'reviewer_id');
+    }
+
+    public function approvals(): HasMany
+    {
+        return $this->hasMany(Approval::class, 'approver_id');
+    }
+
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'assigned_to');
     }
 
     /*
