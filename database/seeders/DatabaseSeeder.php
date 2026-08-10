@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -10,16 +9,23 @@ class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // Reference data — always safe to seed, in any environment.
+        $this->call([
+            RolesAndPermissionsSeeder::class,
+            DisciplineSeeder::class,
         ]);
+
+        /*
+        | Demo accounts use well-known passwords, so they are restricted to
+        | local/testing (§55). Running `db:seed` on a real deployment will
+        | create roles and disciplines but no logins.
+        */
+        if (app()->environment(['local', 'testing'])) {
+            $this->call([
+                DemoUserSeeder::class,
+            ]);
+        }
     }
 }
