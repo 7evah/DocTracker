@@ -65,7 +65,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'Africa/Casablanca'),
 
     /*
     |--------------------------------------------------------------------------
@@ -78,11 +78,18 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    'locale' => env('APP_LOCALE', 'fr'),
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
-    'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
+    'faker_locale' => env('APP_FAKER_LOCALE', 'fr_FR'),
+
+    /*
+    | Locales the app actually ships translations for. SetLocale middleware
+    | rejects anything outside this list. Add 'en' / 'ar' here once the
+    | matching lang/ folder exists (§46).
+    */
+    'supported_locales' => ['fr'],
 
     /*
     |--------------------------------------------------------------------------
