@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DocumentDownloadController;
+use App\Http\Controllers\ReportExportController;
 use App\Livewire\Approvals\Index as ApprovalIndex;
 use App\Livewire\Dashboard;
 use App\Livewire\Documents\Create as DocumentCreate;
@@ -10,6 +11,7 @@ use App\Livewire\Documents\Show as DocumentShow;
 use App\Livewire\Projects\Form as ProjectForm;
 use App\Livewire\Projects\Index as ProjectIndex;
 use App\Livewire\Projects\Show as ProjectShow;
+use App\Livewire\Reports\Index as ReportIndex;
 use App\Livewire\Reviews\Index as ReviewIndex;
 use App\Livewire\Reviews\Show as ReviewShow;
 use App\Livewire\Tasks\Index as TaskIndex;
@@ -108,11 +110,15 @@ Route::middleware(['auth'])->group(function () {
     */
     Route::get('tasks', TaskIndex::class)->name('tasks.index');
 
-    // --- Phase: Reports --------------------------------------------------
-    Route::view('reports', 'placeholder', [
-        'module' => 'reports',
-        'icon' => 'chart-bar',
-    ])->middleware('can:'.Permissions::REPORTS_VIEW)->name('reports.index');
+    /*
+    |----------------------------------------------------------------------
+    | Reports
+    |----------------------------------------------------------------------
+    | The export route takes the same filters the page holds, so a download
+    | always matches what was on screen (§28).
+    */
+    Route::get('reports', ReportIndex::class)->name('reports.index');
+    Route::get('reports/export', ReportExportController::class)->name('reports.export');
 
     // --- Phase: Notifications --------------------------------------------
     Route::view('notifications', 'placeholder', [
