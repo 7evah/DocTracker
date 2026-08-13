@@ -8,6 +8,7 @@ use App\Livewire\Documents\Create as DocumentCreate;
 use App\Livewire\Documents\Edit as DocumentEdit;
 use App\Livewire\Documents\Index as DocumentIndex;
 use App\Livewire\Documents\Show as DocumentShow;
+use App\Livewire\Notifications\Index as NotificationIndex;
 use App\Livewire\Projects\Form as ProjectForm;
 use App\Livewire\Projects\Index as ProjectIndex;
 use App\Livewire\Projects\Show as ProjectShow;
@@ -120,11 +121,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('reports', ReportIndex::class)->name('reports.index');
     Route::get('reports/export', ReportExportController::class)->name('reports.export');
 
-    // --- Phase: Notifications --------------------------------------------
-    Route::view('notifications', 'placeholder', [
-        'module' => 'notifications',
-        'icon' => 'bell',
-    ])->name('notifications.index');
+    /*
+    |----------------------------------------------------------------------
+    | Notifications
+    |----------------------------------------------------------------------
+    | No permission gate: everyone reads their own notifications, and the
+    | component only ever queries the signed-in user's relation (§26).
+    */
+    Route::get('notifications', NotificationIndex::class)->name('notifications.index');
 
     /*
     |----------------------------------------------------------------------

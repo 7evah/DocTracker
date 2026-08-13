@@ -147,13 +147,7 @@
 
         <flux:spacer />
 
-        <flux:button
-            variant="subtle"
-            icon="bell"
-            :href="route('notifications.index')"
-            :tooltip="__('navigation.notifications')"
-            wire:navigate
-        />
+        <livewire:notifications.bell />
 
         <flux:dropdown position="bottom" align="end">
             <flux:profile

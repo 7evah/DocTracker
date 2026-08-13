@@ -30,6 +30,8 @@ class DatabaseSeeder extends Seeder
                 ReviewSeeder::class,
                 ApprovalSeeder::class,
                 TaskSeeder::class,
+                // Last: builds its payloads from the rows above.
+                NotificationSeeder::class,
             ]);
         }
     }

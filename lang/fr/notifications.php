@@ -3,11 +3,32 @@
 return [
 
     'title' => 'Notifications',
+    'subtitle' => 'Affectations, décisions et échéances qui vous concernent.',
     'unread' => 'Non lues',
+    'read' => 'Lues',
+    'all' => 'Toutes',
     'mark_read' => 'Marquer comme lue',
+    'mark_unread' => 'Marquer comme non lue',
     'mark_all_read' => 'Tout marquer comme lu',
+    'delete' => 'Supprimer',
+    'delete_read' => 'Supprimer les notifications lues',
+    'view_all' => 'Voir toutes les notifications',
+    'open' => 'Ouvrir',
     'empty' => 'Aucune notification',
     'empty_hint' => 'Les affectations de revue et les décisions d’approbation apparaîtront ici.',
+    'empty_unread' => 'Aucune notification non lue',
+    'empty_unread_hint' => 'Vous êtes à jour.',
+    'bell_label' => 'Notifications — :count non lue|Notifications — :count non lues',
+    'bell_label_none' => 'Notifications — aucune non lue',
+    'count' => ':count notification|:count notifications',
+    'recent' => 'Récentes',
+
+    'messages' => [
+        'marked_read' => 'Notification marquée comme lue.',
+        'all_marked_read' => 'Toutes les notifications ont été marquées comme lues.',
+        'deleted' => 'Notification supprimée.',
+        'read_deleted' => 'Notifications lues supprimées.',
+    ],
 
     /*
     | Message bodies, written as complete sentences so they read the same in
