@@ -153,9 +153,20 @@ class User extends Authenticatable
         return Storage::disk('public')->url($this->avatar_path);
     }
 
-    /** Highest-ranking role name, used for the "role" line in the UI. */
+    /**
+     * Highest-ranking role name, used for the "role" line in the UI.
+     *
+     * `auth()->user()` reliably has `roles` loaded already, because our
+     * Gate::before hook calls hasRole() on nearly every request and Spatie
+     * loads that relation via loadMissing() internally. A User pulled in
+     * through someone else's relation (a comment's author, a review's
+     * reviewer) usually has not, so loadMissing() here is a real safety net,
+     * not decoration — without it this throws under strict lazy-loading.
+     * Callers that render this in a loop should still eager-load `roles`
+     * themselves so this becomes a no-op rather than N extra queries (§40).
+     */
     public function primaryRole(): ?string
     {
-        return $this->roles->first()?->name;
+        return $this->loadMissing('roles')->roles->first()?->name;
     }
 }

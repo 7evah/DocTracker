@@ -211,6 +211,9 @@ class ReviewService
         return User::query()
             ->active()
             ->permission(Permissions::DOCUMENTS_REVIEW)
+            // The picklist shows each candidate's role, so load it up front
+            // rather than one query per row via User::primaryRole() (§40).
+            ->with('roles')
             ->when($document->created_by, fn ($q, $id) => $q->whereKeyNot($id))
             ->orderBy('name')
             ->get();

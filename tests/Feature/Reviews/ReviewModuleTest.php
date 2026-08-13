@@ -386,6 +386,60 @@ class ReviewModuleTest extends TestCase
         $this->assertFalse($viewer->can('resolveComment', $review));
     }
 
+    /**
+     * Regression: a comment authored by someone other than the viewer used
+     * to throw LazyLoadingViolationException. The author is a User instance
+     * pulled through an Eloquent relation, distinct from auth()->user(),
+     * whose `roles` was never implicitly loaded — unlike the acting user's,
+     * which Gate::before warms via Spatie's hasRole(). Exercised over the
+     * real HTTP route, matching how the bug was actually hit.
+     */
+    public function test_viewing_a_review_with_a_comment_from_another_user_does_not_crash(): void
+    {
+        [, $review, $reviewer] = $this->assignedReview();
+
+        $commenter = $this->userWithRole(UserRole::ProjectManager, 'Autre Intervenant');
+        app(ReviewService::class)->addComment($review, $commenter, 'Une remarque de quelqu’un d’autre.');
+
+        $this->actingAs($reviewer)
+            ->get(route('reviews.show', $review))
+            ->assertOk()
+            ->assertSee('Une remarque de quelqu’un d’autre.')
+            ->assertSee('Autre Intervenant');
+    }
+
+    /** Same regression, via the document page's Comments tab. */
+    public function test_document_comments_tab_with_another_users_comment_does_not_crash(): void
+    {
+        [$document, $review, $reviewer] = $this->assignedReview();
+
+        $commenter = $this->userWithRole(UserRole::ProjectManager, 'Autre Intervenant');
+        app(ReviewService::class)->addComment($review, $commenter, 'Une remarque sur le document.');
+
+        $this->actingAs($document->creator)
+            ->get(route('documents.show', $document).'?tab=comments')
+            ->assertOk();
+    }
+
+    /**
+     * Same regression, for the reviewer candidate list on the assign modal.
+     * The modal's content lives in the DOM (Flux toggles it with a native
+     * <dialog>), so assertSee still finds it without opening the modal.
+     */
+    public function test_reviewer_candidate_list_does_not_crash_on_role_badges(): void
+    {
+        $engineer = $this->userWithRole(UserRole::Engineer);
+        $manager = $this->userWithRole(UserRole::ProjectManager);
+        $candidate = $this->userWithRole(UserRole::Reviewer, 'Candidat Vérificateur');
+
+        $document = $this->documentFor($engineer);
+
+        Livewire::actingAs($manager)
+            ->test(AssignReviewers::class, ['document' => $document])
+            ->assertSee($candidate->name)
+            ->assertSee(__('enums.role.reviewer'));
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Reviewer queue (§23)

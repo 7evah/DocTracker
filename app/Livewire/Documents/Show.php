@@ -145,7 +145,9 @@ class Show extends Component
                 ->get(),
             'comments' => ReviewComment::query()
                 ->whereIn('review_id', $this->document->reviews()->select('reviews.id'))
-                ->with(['author:id,name,avatar_path', 'resolver:id,name'])
+                // 'author.roles' so <x-comment>'s role badge doesn't lazy-load
+                // per row (§40) — see User::primaryRole().
+                ->with(['author:id,name,avatar_path', 'author.roles', 'resolver:id,name'])
                 ->latest()
                 ->get(),
             'activities' => $this->document->activities()

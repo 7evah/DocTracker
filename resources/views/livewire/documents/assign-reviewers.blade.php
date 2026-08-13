@@ -21,6 +21,12 @@
                     compact
                 />
             @else
+                {{--
+                    Flux's default checkbox variant renders only its own
+                    indicator — it ignores rich slot content — so each
+                    candidate's name/role goes through the `label` and
+                    `description` props rather than a custom avatar row.
+                --}}
                 <flux:checkbox.group
                     wire:model="reviewers"
                     :label="__('reviews.assign.reviewers')"
@@ -29,20 +35,10 @@
                     @foreach ($candidates as $candidate)
                         <flux:checkbox
                             :value="(string) $candidate->id"
+                            :label="$candidate->name"
+                            :description="$candidate->department ?: $candidate->primaryRole()"
                             wire:key="cand-{{ $candidate->id }}"
-                        >
-                            <flux:checkbox.indicator />
-
-                            <div class="flex min-w-0 items-center gap-2">
-                                <x-user-avatar :user="$candidate" size="xs" />
-                                <div class="min-w-0">
-                                    <span class="block truncate text-sm">{{ $candidate->name }}</span>
-                                    <span class="block truncate text-xs text-zinc-500 dark:text-zinc-400">
-                                        {{ $candidate->department ?? $candidate->primaryRole() }}
-                                    </span>
-                                </div>
-                            </div>
-                        </flux:checkbox>
+                        />
                     @endforeach
                 </flux:checkbox.group>
 

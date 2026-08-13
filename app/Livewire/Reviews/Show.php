@@ -160,7 +160,9 @@ class Show extends Component
     public function render(): View
     {
         $comments = $this->review->comments()
-            ->with(['author:id,name,avatar_path', 'resolver:id,name', 'replies.author:id,name,avatar_path'])
+            // 'author.roles' so <x-comment>'s role badge doesn't lazy-load
+            // per row (§40) — see User::primaryRole().
+            ->with(['author:id,name,avatar_path', 'author.roles', 'resolver:id,name', 'replies.author:id,name,avatar_path', 'replies.author.roles'])
             ->whereNull('parent_id')
             ->oldest()
             ->get();
