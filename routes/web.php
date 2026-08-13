@@ -2,6 +2,11 @@
 
 use App\Http\Controllers\DocumentDownloadController;
 use App\Http\Controllers\ReportExportController;
+use App\Livewire\Admin\Disciplines as AdminDisciplines;
+use App\Livewire\Admin\Roles as AdminRoles;
+use App\Livewire\Admin\Settings as AdminSettings;
+use App\Livewire\Admin\Users\Index as AdminUsers;
+use App\Livewire\Admin\Workflows as AdminWorkflows;
 use App\Livewire\Approvals\Index as ApprovalIndex;
 use App\Livewire\Dashboard;
 use App\Livewire\Documents\Create as DocumentCreate;
@@ -16,7 +21,6 @@ use App\Livewire\Reports\Index as ReportIndex;
 use App\Livewire\Reviews\Index as ReviewIndex;
 use App\Livewire\Reviews\Show as ReviewShow;
 use App\Livewire\Tasks\Index as TaskIndex;
-use App\Support\Permissions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -35,10 +39,9 @@ Route::get('/', fn () => Auth::check() ? redirect()->route('dashboard') : redire
 | Application
 |--------------------------------------------------------------------------
 |
-| Every module below is reachable from the sidebar. Modules not yet built
-| render the shared "placeholder" view so navigation is complete and
-| demonstrable from day one; each is swapped for its real Livewire page as
-| that phase lands (§48 MVP priority order).
+| Every sidebar destination is a real page. Authorization is enforced inside
+| each component rather than only by route middleware, so a crafted request
+| cannot slip past by reaching a component directly (§13, §39).
 |
 */
 
@@ -136,25 +139,11 @@ Route::middleware(['auth'])->group(function () {
     |----------------------------------------------------------------------
     */
     Route::prefix('admin')->name('admin.')->group(function () {
-        Route::view('users', 'placeholder', [
-            'module' => 'users',
-            'icon' => 'users',
-        ])->middleware('can:'.Permissions::USERS_MANAGE)->name('users');
-
-        Route::view('roles', 'placeholder', [
-            'module' => 'roles',
-            'icon' => 'key',
-        ])->middleware('can:'.Permissions::USERS_MANAGE)->name('roles');
-
-        Route::view('disciplines', 'placeholder', [
-            'module' => 'disciplines',
-            'icon' => 'squares-2x2',
-        ])->middleware('can:'.Permissions::DISCIPLINES_MANAGE)->name('disciplines');
-
-        Route::view('settings', 'placeholder', [
-            'module' => 'settings',
-            'icon' => 'cog-6-tooth',
-        ])->middleware('can:'.Permissions::SETTINGS_MANAGE)->name('settings');
+        Route::get('users', AdminUsers::class)->name('users');
+        Route::get('roles', AdminRoles::class)->name('roles');
+        Route::get('disciplines', AdminDisciplines::class)->name('disciplines');
+        Route::get('workflows', AdminWorkflows::class)->name('workflows');
+        Route::get('settings', AdminSettings::class)->name('settings');
     });
 });
 

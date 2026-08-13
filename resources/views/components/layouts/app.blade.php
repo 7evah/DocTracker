@@ -112,6 +112,12 @@
                         </flux:sidebar.item>
                     @endcan
 
+                    @can(\App\Support\Permissions::WORKFLOWS_MANAGE)
+                        <flux:sidebar.item icon="check-badge" :href="route('admin.workflows')" :current="request()->routeIs('admin.workflows')" wire:navigate>
+                            {{ __('navigation.admin.workflows') }}
+                        </flux:sidebar.item>
+                    @endcan
+
                     @can(\App\Support\Permissions::SETTINGS_MANAGE)
                         <flux:sidebar.item icon="cog-6-tooth" :href="route('admin.settings')" :current="request()->routeIs('admin.settings')" wire:navigate>
                             {{ __('navigation.settings') }}

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -151,6 +152,65 @@ class User extends Authenticatable
         }
 
         return Storage::disk('public')->url($this->avatar_path);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Administration guards (§29)
+    |--------------------------------------------------------------------------
+    |
+    | These are integrity rules, not permissions: administrators bypass every
+    | policy via Gate::before, so putting them in UserPolicy would make them
+    | dead code — the same mistake caught earlier on ProjectPolicy.
+    */
+
+    public function isAdministrator(): bool
+    {
+        return $this->hasRole(UserRole::Administrator->value);
+    }
+
+    /**
+     * True when deactivating or demoting this account would leave the
+     * installation with nobody able to administer it.
+     */
+    public function isLastActiveAdministrator(): bool
+    {
+        if (! $this->isAdministrator() || ! $this->status->canLogin()) {
+            return false;
+        }
+
+        return static::query()
+            ->active()
+            ->whereKeyNot($this->id)
+            ->whereHas('roles', fn ($query) => $query->where('name', UserRole::Administrator->value))
+            ->doesntExist();
+    }
+
+    /** Nobody may lock themselves out, and the last admin may not be disabled. */
+    public function canHaveStatusChangedBy(self $actor): bool
+    {
+        return $this->isNot($actor) && ! $this->isLastActiveAdministrator();
+    }
+
+    /**
+     * Deleting is refused when the account owns document history — the audit
+     * trail must survive the person (§34). Deactivate instead.
+     */
+    public function canBeDeleted(): bool
+    {
+        if ($this->isLastActiveAdministrator()) {
+            return false;
+        }
+
+        return $this->createdDocuments()->doesntExist()
+            && $this->uploadedVersions()->doesntExist()
+            && $this->reviews()->doesntExist()
+            && $this->approvals()->doesntExist();
+    }
+
+    public function canBeDeletedBy(self $actor): bool
+    {
+        return $this->isNot($actor) && $this->canBeDeleted();
     }
 
     /**

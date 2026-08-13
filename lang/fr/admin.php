@@ -1,0 +1,166 @@
+<?php
+
+return [
+
+    'users' => [
+        'title' => 'Utilisateurs',
+        'subtitle' => 'Comptes, rôles et statuts d’accès.',
+        'create' => 'Nouvel utilisateur',
+        'create_heading' => 'Créer un utilisateur',
+        'edit_heading' => 'Modifier :name',
+        'search' => 'Rechercher un nom, un e-mail, un département…',
+        'last_activity' => 'Dernière activité',
+        'never_connected' => 'Jamais connecté',
+        'roles' => 'Rôles',
+        'no_role' => 'Aucun rôle',
+        'password_hint' => 'Laisser vide pour conserver le mot de passe actuel.',
+        'password_new_hint' => 'Au moins 8 caractères.',
+        'filters' => [
+            'role' => 'Tous les rôles',
+            'status' => 'Tous les statuts',
+        ],
+        'actions' => [
+            'activate' => 'Activer',
+            'deactivate' => 'Désactiver',
+            'suspend' => 'Suspendre',
+            'reset_password' => 'Réinitialiser le mot de passe',
+        ],
+        'messages' => [
+            'created' => 'Utilisateur créé.',
+            'updated' => 'Utilisateur mis à jour.',
+            'status_changed' => 'Statut mis à jour.',
+            'deleted' => 'Utilisateur supprimé.',
+            'cannot_edit_self_status' => 'Vous ne pouvez pas modifier votre propre statut.',
+            'cannot_delete_self' => 'Vous ne pouvez pas supprimer votre propre compte.',
+            'cannot_remove_own_admin' => 'Vous ne pouvez pas retirer votre propre rôle d’administrateur.',
+            'last_administrator' => 'Impossible : ce compte est le dernier administrateur actif.',
+            'has_history' => 'Cet utilisateur a un historique documentaire ; désactivez-le plutôt que de le supprimer.',
+        ],
+        'empty' => [
+            'title' => 'Aucun utilisateur',
+            'filtered_title' => 'Aucun utilisateur ne correspond',
+            'filtered_description' => 'Ajustez votre recherche ou vos filtres.',
+        ],
+    ],
+
+    'roles' => [
+        'title' => 'Rôles et permissions',
+        'subtitle' => 'Ce que chaque rôle est autorisé à faire.',
+        'permissions' => 'Permissions',
+        'users_count' => ':count utilisateur|:count utilisateurs',
+        'administrator_note' => 'Les administrateurs disposent de toutes les permissions, indépendamment de cette matrice.',
+        'groups' => [
+            'projects' => 'Projets',
+            'documents' => 'Documents',
+            'reviews' => 'Revues',
+            'approvals' => 'Approbations',
+            'tasks' => 'Tâches',
+            'reports' => 'Rapports',
+            'administration' => 'Administration',
+        ],
+        'messages' => [
+            'updated' => 'Permissions mises à jour.',
+            'administrator_locked' => 'Le rôle Administrateur ne peut pas être restreint.',
+        ],
+    ],
+
+    'disciplines' => [
+        'title' => 'Disciplines',
+        'subtitle' => 'Référentiel utilisé comme préfixe des numéros de document.',
+        'create' => 'Nouvelle discipline',
+        'create_heading' => 'Créer une discipline',
+        'edit_heading' => 'Modifier la discipline',
+        'fields' => [
+            'code' => 'Code',
+            'name' => 'Nom',
+            'description' => 'Description',
+            'sort_order' => 'Ordre d’affichage',
+            'is_active' => 'Active',
+        ],
+        'hints' => [
+            'code' => 'Deux à huit caractères, ex. ME. Sert de préfixe aux numéros de document.',
+            'is_active' => 'Une discipline inactive reste sur les documents existants mais n’est plus proposée.',
+        ],
+        'documents_count' => ':count document|:count documents',
+        'messages' => [
+            'created' => 'Discipline créée.',
+            'updated' => 'Discipline mise à jour.',
+            'deleted' => 'Discipline supprimée.',
+            'in_use' => 'Impossible de supprimer une discipline utilisée par des documents. Désactivez-la plutôt.',
+        ],
+        'empty' => [
+            'title' => 'Aucune discipline',
+            'description' => 'Créez au moins une discipline pour pouvoir classer les documents.',
+        ],
+    ],
+
+    'workflows' => [
+        'title' => 'Circuits d’approbation',
+        'subtitle' => 'Étapes de signature appliquées aux documents.',
+        'create' => 'Nouveau circuit',
+        'create_heading' => 'Créer un circuit',
+        'edit_heading' => 'Modifier le circuit',
+        'steps' => 'Étapes',
+        'add_step' => 'Ajouter une étape',
+        'remove_step' => 'Retirer',
+        'fields' => [
+            'name' => 'Nom',
+            'description' => 'Description',
+            'project' => 'Projet',
+            'is_active' => 'Actif',
+            'is_default' => 'Circuit par défaut',
+            'step_order' => 'Ordre',
+            'role' => 'Rôle signataire',
+            'label' => 'Libellé',
+            'turnaround_days' => 'Délai (jours)',
+        ],
+        'hints' => [
+            'project' => 'Laisser vide pour un circuit global applicable à tous les projets.',
+            'is_default' => 'Un circuit de projet prime sur le circuit global.',
+            'steps' => 'Les étapes sont signées dans l’ordre indiqué.',
+        ],
+        'global' => 'Global',
+        'step_count' => ':count étape|:count étapes',
+        'messages' => [
+            'created' => 'Circuit créé.',
+            'updated' => 'Circuit mis à jour.',
+            'deleted' => 'Circuit supprimé.',
+            'needs_steps' => 'Un circuit doit comporter au moins une étape.',
+            'duplicate_order' => 'Deux étapes ne peuvent pas avoir le même ordre.',
+        ],
+        'empty' => [
+            'title' => 'Aucun circuit',
+            'description' => 'Créez un circuit pour définir les étapes d’approbation.',
+        ],
+    ],
+
+    'settings' => [
+        'title' => 'Paramètres',
+        'subtitle' => 'Options applicatives modifiables sans redéploiement.',
+        'saved' => 'Paramètres enregistrés.',
+        'system' => 'Informations système',
+        'env_note' => 'Les paramètres sensibles (base de données, messagerie, stockage) restent définis dans le fichier .env.',
+        'fields' => [
+            'documents_max_size_kb' => 'Taille maximale des fichiers (Ko)',
+            'reviews_default_turnaround_days' => 'Délai de revue par défaut (jours)',
+            'approvals_default_turnaround_days' => 'Délai d’approbation par défaut (jours)',
+            'notifications_email_enabled' => 'Notifications par e-mail',
+            'documents_require_version_notes' => 'Notes de version obligatoires',
+        ],
+        'hints' => [
+            'documents_max_size_kb' => 'Appliquée à chaque téléversement de document et de révision.',
+            'notifications_email_enabled' => 'Les notifications dans l’application restent actives dans tous les cas.',
+        ],
+        'info' => [
+            'app_version' => 'Version de l’application',
+            'laravel' => 'Laravel',
+            'php' => 'PHP',
+            'database' => 'Base de données',
+            'storage_disk' => 'Disque de stockage',
+            'queue' => 'File d’attente',
+            'locale' => 'Langue',
+            'timezone' => 'Fuseau horaire',
+        ],
+    ],
+
+];
