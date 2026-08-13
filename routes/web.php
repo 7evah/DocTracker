@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DocumentDownloadController;
+use App\Livewire\Approvals\Index as ApprovalIndex;
 use App\Livewire\Dashboard;
 use App\Livewire\Documents\Create as DocumentCreate;
 use App\Livewire\Documents\Edit as DocumentEdit;
@@ -88,11 +89,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('reviews', ReviewIndex::class)->name('reviews.index');
     Route::get('reviews/{review}', ReviewShow::class)->name('reviews.show');
 
-    // --- Phase: Approvals ------------------------------------------------
-    Route::view('approvals', 'placeholder', [
-        'module' => 'approvals',
-        'icon' => 'check-badge',
-    ])->middleware('can:'.Permissions::APPROVALS_VIEW)->name('approvals.index');
+    /*
+    |----------------------------------------------------------------------
+    | Approvals
+    |----------------------------------------------------------------------
+    | Signing happens on the document's Approvals tab, where the full circuit
+    | is visible; this queue is the approver's way in (§24).
+    */
+    Route::get('approvals', ApprovalIndex::class)->name('approvals.index');
 
     // --- Phase: Tasks ----------------------------------------------------
     Route::view('tasks', 'placeholder', [

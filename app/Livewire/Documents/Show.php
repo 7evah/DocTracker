@@ -3,8 +3,10 @@
 namespace App\Livewire\Documents;
 
 use App\Enums\DocumentStatus;
+use App\Models\Approval;
 use App\Models\Document;
 use App\Models\ReviewComment;
+use App\Services\ApprovalService;
 use App\Services\DocumentService;
 use App\Services\DocumentStorage;
 use Flux\Flux;
@@ -29,6 +31,9 @@ class Show extends Component
 
     public string $revisionNotes = '';
 
+    /** Shared by the approve and reject confirmation dialogs. */
+    public string $approvalComment = '';
+
     public function mount(Document $document): void
     {
         $this->authorize('view', $document);
@@ -46,6 +51,66 @@ class Show extends Component
     {
         $this->document->refresh();
         $this->tab = 'reviews';
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Approval actions (§24)
+    |--------------------------------------------------------------------------
+    */
+
+    public function approveStep(int $approvalId, ApprovalService $approvals): void
+    {
+        $approval = $this->approvalOnThisDocument($approvalId);
+
+        $this->authorize('approve', $approval);
+
+        $approvals->decide($approval, auth()->user(), approved: true, comment: $this->approvalComment ?: null);
+
+        $this->finishApprovalAction();
+
+        Flux::toast(
+            text: $this->document->status === DocumentStatus::Approved
+                ? __('approvals.messages.approved_final')
+                : __('approvals.messages.approved'),
+            variant: 'success',
+        );
+    }
+
+    public function rejectStep(int $approvalId, ApprovalService $approvals): void
+    {
+        $approval = $this->approvalOnThisDocument($approvalId);
+
+        $this->authorize('reject', $approval);
+
+        // A rejection ends the circuit, so it must carry a reason (§37).
+        $this->validate(
+            ['approvalComment' => ['required', 'string', 'min:5', 'max:2000']],
+            ['approvalComment.required' => __('approvals.confirm.comment_required')],
+            ['approvalComment' => __('approvals.fields.comment')],
+        );
+
+        $approvals->decide($approval, auth()->user(), approved: false, comment: $this->approvalComment);
+
+        $this->finishApprovalAction();
+
+        Flux::toast(text: __('approvals.messages.rejected'), variant: 'warning');
+    }
+
+    /**
+     * Resolve the step through this document's own relation, so an approval
+     * id belonging to another document cannot be acted on from here (§39).
+     */
+    private function approvalOnThisDocument(int $approvalId): Approval
+    {
+        return $this->document->approvals()->findOrFail($approvalId);
+    }
+
+    private function finishApprovalAction(): void
+    {
+        $this->reset('approvalComment');
+        $this->document->refresh();
+        $this->modal('approval-decision')->close();
     }
 
     /*
@@ -136,9 +201,12 @@ class Show extends Component
             ->orderByDesc('id')
             ->get();
 
+        $currentVersion = $versions->firstWhere('revision', $this->document->current_revision)
+            ?? $versions->first();
+
         return view('livewire.documents.show', [
             'versions' => $versions,
-            'currentVersion' => $versions->firstWhere('revision', $this->document->current_revision) ?? $versions->first(),
+            'currentVersion' => $currentVersion,
             'reviews' => $this->document->reviews()
                 ->with(['reviewer:id,name,avatar_path', 'documentVersion:id,revision'])
                 ->latest('reviews.id')
@@ -150,6 +218,11 @@ class Show extends Component
                 ->with(['author:id,name,avatar_path', 'author.roles', 'resolver:id,name'])
                 ->latest()
                 ->get(),
+            // Approvals for the current revision only — earlier revisions
+            // keep their own chain, which the history tab covers (§22).
+            'approvals' => $currentVersion
+                ? $currentVersion->approvals()->with('approver:id,name,avatar_path')->orderBy('step')->get()
+                : collect(),
             'activities' => $this->document->activities()
                 ->with('causer:id,name,avatar_path')
                 ->latest()

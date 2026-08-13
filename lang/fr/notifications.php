@@ -20,12 +20,18 @@ return [
     'review_updated' => 'La revue de :number a été mise à jour.',
     'deadline_soon' => 'L’échéance de revue pour :number approche.',
 
+    'approval_requested' => 'Votre approbation est requise sur :number (révision :revision).',
+    'document_approved' => 'La révision :revision de :number a été approuvée.',
+    'document_rejected' => 'La révision :revision de :number a été rejetée.',
+
     'mail' => [
         'greeting' => 'Bonjour :name,',
         'salutation' => 'Cordialement, l’équipe DocFlow',
         'deadline' => 'Échéance : :date',
         'review_assigned_subject' => 'DocFlow — :number à vérifier',
         'review_completed_subject' => 'DocFlow — décision de revue sur :number',
+        'approval_requested_subject' => 'DocFlow — :number à approuver',
+        'document_decided_subject' => 'DocFlow — décision finale sur :number',
     ],
 
 ];

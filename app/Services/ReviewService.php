@@ -25,6 +25,8 @@ use Illuminate\Support\Facades\DB;
  */
 class ReviewService
 {
+    public function __construct(private readonly ApprovalService $approvals) {}
+
     /**
      * Assign one or more reviewers to a revision and move the document into
      * review.
@@ -126,7 +128,7 @@ class ReviewService
                 ])
                 ->log('document.review_'.$verdict->value);
 
-            $this->rollUpDocumentStatus($review->documentVersion->fresh());
+            $this->rollUpDocumentStatus($review->documentVersion->fresh(), $reviewer);
 
             // Tell the author what happened; they are the one who must act.
             if ($author = $document->creator) {
@@ -141,10 +143,16 @@ class ReviewService
      * Derive the document status from every review on the current revision.
      *
      * Order matters: a single rejection outranks everything, then any
-     * revision request, and only a clean sweep of approvals promotes the
-     * document. While any review is still open the document stays in review.
+     * revision request, and only a clean sweep of approvals clears the review
+     * stage. While any review is still open the document stays in review.
+     *
+     * A clean sweep does NOT approve the document — technical verification
+     * and formal approval are separate stages (§7 vs §8). It hands off to the
+     * approval circuit instead, and the document remains Under Review while
+     * signatures are collected. It only becomes Approved here when no
+     * workflow applies, i.e. there is nothing left to sign.
      */
-    public function rollUpDocumentStatus(DocumentVersion $version): void
+    public function rollUpDocumentStatus(DocumentVersion $version, ?User $actor = null): void
     {
         $document = $version->document;
         $reviews = $version->reviews()->get();
@@ -157,11 +165,29 @@ class ReviewService
             $reviews->contains(fn (Review $r) => $r->status === ReviewStatus::Rejected) => DocumentStatus::Rejected,
             $reviews->contains(fn (Review $r) => $r->status === ReviewStatus::RevisionRequested) => DocumentStatus::NeedsRevision,
             $reviews->contains(fn (Review $r) => $r->status->isOpen()) => DocumentStatus::UnderReview,
-            default => DocumentStatus::Approved,
+            default => null,
         };
 
-        if ($document->status !== $status) {
-            $document->forceFill(['status' => $status])->save();
+        if ($status !== null) {
+            if ($document->status !== $status) {
+                $document->forceFill(['status' => $status])->save();
+            }
+
+            return;
+        }
+
+        // Reviews all favourable: hand over to the approval circuit.
+        $started = $this->approvals->start($version, $actor);
+
+        if ($started === null && $document->status !== DocumentStatus::Approved) {
+            $document->forceFill(['status' => DocumentStatus::Approved])->save();
+
+            activity('document')
+                ->performedOn($document)
+                ->causedBy($actor)
+                ->event('approved')
+                ->withProperties(['revision' => $version->revision])
+                ->log('document.approved');
         }
     }
 

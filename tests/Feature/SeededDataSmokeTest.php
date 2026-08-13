@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Document;
 use App\Models\Review;
 use App\Models\User;
+use App\Support\Permissions;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -63,7 +64,7 @@ class SeededDataSmokeTest extends TestCase
     public function test_the_reviews_and_documents_index_render_for_every_demo_role(): void
     {
         foreach (User::whereNotNull('email')->get() as $user) {
-            if (! $user->can(\App\Support\Permissions::REVIEWS_VIEW)) {
+            if (! $user->can(Permissions::REVIEWS_VIEW)) {
                 continue;
             }
 

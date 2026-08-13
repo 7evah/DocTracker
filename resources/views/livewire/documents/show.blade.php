@@ -381,9 +381,76 @@
             @endif
         </x-panel>
 
+    {{-- Approval circuit on the current revision (§24) --}}
+    @elseif ($tab === 'approvals')
+        @php
+            $myStep = $approvals->first(fn ($a) => $a->status === App\Enums\ApprovalStatus::InProgress
+                && $a->approver_id === auth()->id());
+        @endphp
+
+        <x-panel :title="__('approvals.stepper.title')" icon="check-badge">
+            @if ($myStep)
+                <x-slot:actions>
+                    <flux:modal.trigger name="approval-decision">
+                        <flux:button size="sm" variant="primary" icon="check-circle">
+                            {{ __('approvals.actions.approve') }}
+                        </flux:button>
+                    </flux:modal.trigger>
+                </x-slot:actions>
+            @endif
+
+            <x-approval-stepper :approvals="$approvals" />
+        </x-panel>
+
+        @if ($myStep)
+            <flux:modal name="approval-decision" class="max-w-md">
+                <div class="flex flex-col gap-4">
+                    <div>
+                        <flux:heading size="lg">{{ __('common.confirm.title') }}</flux:heading>
+                        <flux:subheading class="mt-1">
+                            {{ __('approvals.confirm.approve') }}
+                            @if ($myStep->step === $approvals->max('step'))
+                                {{ __('approvals.confirm.approve_final') }}
+                            @endif
+                        </flux:subheading>
+                    </div>
+
+                    <flux:textarea
+                        wire:model="approvalComment"
+                        :label="__('approvals.fields.comment')"
+                        :description="__('approvals.confirm.reject_hint')"
+                        rows="3"
+                    />
+                    <flux:error name="approvalComment" />
+
+                    <div class="flex flex-wrap justify-end gap-2">
+                        <flux:modal.close>
+                            <flux:button variant="ghost">{{ __('common.actions.cancel') }}</flux:button>
+                        </flux:modal.close>
+
+                        <flux:button
+                            wire:click="rejectStep({{ $myStep->id }})"
+                            variant="danger"
+                            icon="x-circle"
+                        >
+                            {{ __('approvals.actions.reject') }}
+                        </flux:button>
+
+                        <flux:button
+                            wire:click="approveStep({{ $myStep->id }})"
+                            variant="primary"
+                            icon="check-circle"
+                        >
+                            {{ __('approvals.actions.approve') }}
+                        </flux:button>
+                    </div>
+                </div>
+            </flux:modal>
+        @endif
+
     @else
         <x-empty-state
-            icon="{{ ['approvals' => 'check-badge', 'tasks' => 'clipboard-document-check'][$tab] ?? 'inbox' }}"
+            icon="clipboard-document-check"
             :title="__('dashboard.coming_soon')"
             :description="__('Ce contenu sera disponible avec le module correspondant.')"
         />
