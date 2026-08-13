@@ -20,6 +20,8 @@ return [
     'review_updated' => 'La revue de :number a été mise à jour.',
     'deadline_soon' => 'L’échéance de revue pour :number approche.',
 
+    'task_assigned' => 'Une tâche vous a été affectée : :title',
+
     'approval_requested' => 'Votre approbation est requise sur :number (révision :revision).',
     'document_approved' => 'La révision :revision de :number a été approuvée.',
     'document_rejected' => 'La révision :revision de :number a été rejetée.',
@@ -30,6 +32,7 @@ return [
         'deadline' => 'Échéance : :date',
         'review_assigned_subject' => 'DocFlow — :number à vérifier',
         'review_completed_subject' => 'DocFlow — décision de revue sur :number',
+        'task_assigned_subject' => 'DocFlow — une tâche vous a été affectée',
         'approval_requested_subject' => 'DocFlow — :number à approuver',
         'document_decided_subject' => 'DocFlow — décision finale sur :number',
     ],

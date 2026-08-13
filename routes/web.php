@@ -12,6 +12,7 @@ use App\Livewire\Projects\Index as ProjectIndex;
 use App\Livewire\Projects\Show as ProjectShow;
 use App\Livewire\Reviews\Index as ReviewIndex;
 use App\Livewire\Reviews\Show as ReviewShow;
+use App\Livewire\Tasks\Index as TaskIndex;
 use App\Support\Permissions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -98,11 +99,14 @@ Route::middleware(['auth'])->group(function () {
     */
     Route::get('approvals', ApprovalIndex::class)->name('approvals.index');
 
-    // --- Phase: Tasks ----------------------------------------------------
-    Route::view('tasks', 'placeholder', [
-        'module' => 'tasks',
-        'icon' => 'clipboard-document-check',
-    ])->middleware('can:'.Permissions::TASKS_VIEW)->name('tasks.index');
+    /*
+    |----------------------------------------------------------------------
+    | Tasks
+    |----------------------------------------------------------------------
+    | A single list page; creating and editing happen in a shared dialog that
+    | the document and project pages reuse (§27).
+    */
+    Route::get('tasks', TaskIndex::class)->name('tasks.index');
 
     // --- Phase: Reports --------------------------------------------------
     Route::view('reports', 'placeholder', [

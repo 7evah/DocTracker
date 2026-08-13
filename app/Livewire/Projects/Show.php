@@ -69,6 +69,15 @@ class Show extends Component
 
     public function render(): View
     {
-        return view('livewire.projects.show')->title($this->project->name);
+        return view('livewire.projects.show', [
+            'tasks' => $this->tab === 'tasks'
+                ? $this->project->tasks()
+                    ->with(['assignee:id,name,avatar_path', 'document:id,document_number'])
+                    ->orderByRaw('case when status in ("open","in_progress") then 0 else 1 end')
+                    ->orderByRaw('due_date is null')
+                    ->orderBy('due_date')
+                    ->get()
+                : collect(),
+        ])->title($this->project->name);
     }
 }

@@ -159,10 +159,46 @@
                     </dl>
                 </x-panel>
             </div>
+        @elseif ($tab === 'tasks')
+            <x-panel :title="__('tasks.title')" icon="clipboard-document-check" :padded="false">
+                @can('create', App\Models\Task::class)
+                    <x-slot:actions>
+                        <flux:button size="xs" variant="ghost" icon="plus" wire:click="$dispatch('new-task')">
+                            {{ __('tasks.create') }}
+                        </flux:button>
+                    </x-slot:actions>
+                @endcan
+
+                @if ($tasks->isEmpty())
+                    <div class="p-4">
+                        <x-empty-state
+                            icon="clipboard-document-check"
+                            :title="__('tasks.empty.none_on_project')"
+                            compact
+                        />
+                    </div>
+                @else
+                    <ul class="flex flex-col">
+                        @foreach ($tasks as $task)
+                            <x-task-row
+                                :task="$task"
+                                :show-project="false"
+                                :last="$loop->last"
+                                wire:key="proj-task-{{ $task->id }}"
+                            />
+                        @endforeach
+                    </ul>
+                @endif
+            </x-panel>
+
+            @can('create', App\Models\Task::class)
+                <livewire:tasks.form :project-id="$project->id" :key="'task-form-proj-'.$project->id" />
+            @endcan
+
         @else
             {{-- Remaining tabs light up as their modules land (§48). --}}
             <x-empty-state
-                icon="{{ ['documents' => 'document-text', 'reviews' => 'eye', 'approvals' => 'check-badge', 'tasks' => 'clipboard-document-check', 'activity' => 'clock'][$tab] ?? 'inbox' }}"
+                icon="{{ ['documents' => 'document-text', 'reviews' => 'eye', 'approvals' => 'check-badge', 'activity' => 'clock'][$tab] ?? 'inbox' }}"
                 :title="__('dashboard.coming_soon')"
                 :description="__('Ce contenu sera disponible avec le module correspondant.')"
             />

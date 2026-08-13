@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
                 DocumentSeeder::class,
                 ReviewSeeder::class,
                 ApprovalSeeder::class,
+                TaskSeeder::class,
             ]);
         }
     }

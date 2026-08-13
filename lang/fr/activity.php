@@ -18,6 +18,19 @@ return [
         'unarchived' => 'a désarchivé le document',
         'downloaded' => 'a téléchargé la révision :revision',
         'updated' => 'a modifié le document',
+
+        // Review outcomes, logged as document.review_<verdict>.
+        'review_assigned' => 'a affecté la révision :revision pour revue',
+        'review_approved' => 'a approuvé la revue de la révision :revision',
+        'review_revision_requested' => 'a demandé une révision',
+        'review_rejected' => 'a rejeté la révision :revision en revue',
+        'commented' => 'a commenté la révision :revision',
+
+        // Approval circuit (§8).
+        'approval_started' => 'a lancé le circuit d’approbation',
+        'approval_approved' => 'a approuvé une étape du circuit',
+        'approval_rejected' => 'a rejeté le document au circuit d’approbation',
+        'approved' => 'a approuvé le document',
     ],
 
     'project' => [
@@ -36,6 +49,14 @@ return [
     'approval' => [
         'approved' => 'a approuvé la révision :revision',
         'rejected' => 'a rejeté la révision :revision',
+    ],
+
+    'task' => [
+        'created' => 'a créé la tâche',
+        'updated' => 'a modifié la tâche',
+        'completed' => 'a terminé la tâche',
+        'reopened' => 'a rouvert la tâche',
+        'cancelled' => 'a annulé la tâche',
     ],
 
     'fallback' => 'a effectué une action',

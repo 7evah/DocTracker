@@ -223,6 +223,12 @@ class Show extends Component
             'approvals' => $currentVersion
                 ? $currentVersion->approvals()->with('approver:id,name,avatar_path')->orderBy('step')->get()
                 : collect(),
+            'tasks' => $this->document->tasks()
+                ->with(['assignee:id,name,avatar_path', 'project:id,project_code'])
+                ->orderByRaw('case when status in ("open","in_progress") then 0 else 1 end')
+                ->orderByRaw('due_date is null')
+                ->orderBy('due_date')
+                ->get(),
             'activities' => $this->document->activities()
                 ->with('causer:id,name,avatar_path')
                 ->latest()

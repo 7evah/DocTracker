@@ -448,12 +448,46 @@
             </flux:modal>
         @endif
 
-    @else
-        <x-empty-state
-            icon="clipboard-document-check"
-            :title="__('dashboard.coming_soon')"
-            :description="__('Ce contenu sera disponible avec le module correspondant.')"
-        />
+    {{-- Follow-up actions on this document (§27) --}}
+    @elseif ($tab === 'tasks')
+        <x-panel :title="__('tasks.title')" icon="clipboard-document-check" :padded="false">
+            @can('create', App\Models\Task::class)
+                <x-slot:actions>
+                    <flux:button size="xs" variant="ghost" icon="plus" wire:click="$dispatch('new-task')">
+                        {{ __('tasks.create') }}
+                    </flux:button>
+                </x-slot:actions>
+            @endcan
+
+            @if ($tasks->isEmpty())
+                <div class="p-4">
+                    <x-empty-state
+                        icon="clipboard-document-check"
+                        :title="__('tasks.empty.none_on_document')"
+                        compact
+                    />
+                </div>
+            @else
+                <ul class="flex flex-col">
+                    @foreach ($tasks as $task)
+                        <x-task-row
+                            :task="$task"
+                            :show-project="false"
+                            :last="$loop->last"
+                            wire:key="doc-task-{{ $task->id }}"
+                        />
+                    @endforeach
+                </ul>
+            @endif
+        </x-panel>
+
+        @can('create', App\Models\Task::class)
+            <livewire:tasks.form
+                :project-id="$document->project_id"
+                :document-id="$document->id"
+                :key="'task-form-doc-'.$document->id"
+            />
+        @endcan
     @endif
 
     {{-- New revision modal --}}
