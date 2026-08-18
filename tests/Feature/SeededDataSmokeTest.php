@@ -6,16 +6,28 @@ use App\Models\Document;
 use App\Models\Review;
 use App\Models\User;
 use App\Support\Permissions;
-use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\ApprovalSeeder;
+use Database\Seeders\DemoUserSeeder;
+use Database\Seeders\DisciplineSeeder;
+use Database\Seeders\DocumentSeeder;
+use Database\Seeders\NotificationSeeder;
+use Database\Seeders\ProjectSeeder;
+use Database\Seeders\ReviewSeeder;
+use Database\Seeders\RolesAndPermissionsSeeder;
+use Database\Seeders\TaskSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
- * Renders every page against the actual seed data, not synthetic factories.
+ * Renders every page against the fully-populated demo dataset, not synthetic
+ * factories.
  *
- * This is what caught the LazyLoadingViolationException on /reviews/1 in
- * practice: the seeder produces comment authors, reviewers and disciplines
+ * DatabaseSeeder no longer runs this chain by default (a fresh install now
+ * starts with logins but no business data — see FreshInstallTest), so this
+ * test calls each showcase seeder explicitly. It still earns its keep: this
+ * is what caught the LazyLoadingViolationException on /reviews/1 in
+ * practice — the seeder produces comment authors, reviewers and disciplines
  * with the exact relation-loading shape a real demo run has, which
  * factory-built single-record tests do not always reproduce.
  */
@@ -29,7 +41,15 @@ class SeededDataSmokeTest extends TestCase
 
         Storage::fake('documents');
 
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(RolesAndPermissionsSeeder::class);
+        $this->seed(DisciplineSeeder::class);
+        $this->seed(DemoUserSeeder::class);
+        $this->seed(ProjectSeeder::class);
+        $this->seed(DocumentSeeder::class);
+        $this->seed(ReviewSeeder::class);
+        $this->seed(ApprovalSeeder::class);
+        $this->seed(TaskSeeder::class);
+        $this->seed(NotificationSeeder::class);
     }
 
     public function test_every_seeded_review_renders_for_its_reviewer(): void
