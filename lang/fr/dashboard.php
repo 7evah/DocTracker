@@ -37,6 +37,4 @@ return [
         'activity_hint' => 'Les actions réalisées dans DocFlow seront tracées ici.',
     ],
 
-    'coming_soon' => 'Bientôt disponible',
-
 ];

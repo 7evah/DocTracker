@@ -75,6 +75,11 @@ return [
         'documents_hint' => 'Les documents téléversés pour ce projet apparaîtront ici.',
         'tasks' => 'Aucune tâche',
         'activity' => 'Aucune activité enregistrée',
+        'activity_hint' => 'Les actions sur le projet et ses documents apparaîtront ici.',
+        'reviews' => 'Aucune revue en cours',
+        'reviews_hint' => 'Les vérifications affectées sur les documents de ce projet apparaîtront ici.',
+        'approvals' => 'Aucune approbation',
+        'approvals_hint' => 'Les circuits de signature démarrés sur ce projet apparaîtront ici.',
     ],
 
     'messages' => [

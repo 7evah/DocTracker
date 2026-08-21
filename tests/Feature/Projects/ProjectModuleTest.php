@@ -9,9 +9,12 @@ use App\Enums\UserStatus;
 use App\Livewire\Projects\Form as ProjectForm;
 use App\Livewire\Projects\Index as ProjectIndex;
 use App\Livewire\Projects\Show as ProjectShow;
+use App\Models\Approval;
 use App\Models\Discipline;
 use App\Models\Document;
+use App\Models\DocumentVersion;
 use App\Models\Project;
+use App\Models\Review;
 use App\Models\User;
 use Database\Seeders\DisciplineSeeder;
 use Database\Seeders\RolesAndPermissionsSeeder;
@@ -341,5 +344,130 @@ class ProjectModuleTest extends TestCase
             'end_date' => now()->subMonth(),
         ]);
         $this->assertFalse($completed->isOverdue());
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Detail tabs (§18)
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Builds a project carrying one document, one review and one approval,
+     * plus a second project with its own set, so the scoping assertions below
+     * have something they could wrongly leak.
+     *
+     * @return array{0: Project, 1: Document, 2: Review, 3: Approval}
+     */
+    private function projectWithWorkflow(string $code, string $documentNumber): array
+    {
+        $user = $this->userWithRole(UserRole::Reviewer);
+
+        $project = Project::factory()->create(['project_code' => $code]);
+
+        $document = Document::factory()->create([
+            'project_id' => $project->id,
+            'discipline_id' => Discipline::first()->id,
+            'created_by' => $user->id,
+            'document_number' => $documentNumber,
+        ]);
+
+        $version = DocumentVersion::factory()->create([
+            'document_id' => $document->id,
+            'uploaded_by' => $user->id,
+        ]);
+
+        $review = Review::factory()->create([
+            'document_version_id' => $version->id,
+            'reviewer_id' => $user->id,
+            'assigned_by' => $user->id,
+        ]);
+
+        $approval = Approval::factory()->create([
+            'document_version_id' => $version->id,
+            'approver_id' => $user->id,
+        ]);
+
+        return [$project, $document, $review, $approval];
+    }
+
+    public function test_each_detail_tab_lists_only_its_own_projects_records(): void
+    {
+        [$project, $document] = $this->projectWithWorkflow('AAA-01', 'PI-1000');
+        [, $otherDocument] = $this->projectWithWorkflow('BBB-02', 'PI-2000');
+
+        $component = Livewire::actingAs($this->userWithRole(UserRole::ProjectManager))
+            ->test(ProjectShow::class, ['project' => $project]);
+
+        foreach (['documents', 'reviews', 'approvals'] as $tab) {
+            $component->set('tab', $tab)
+                ->assertSee($document->document_number)
+                ->assertDontSee($otherDocument->document_number);
+        }
+    }
+
+    /**
+     * The tabs are lazy: a payload is only queried while its tab is open, so
+     * five of the six panels cost nothing on any given render (§40).
+     */
+    public function test_tab_payloads_are_only_loaded_for_the_active_tab(): void
+    {
+        [$project] = $this->projectWithWorkflow('CCC-03', 'PI-3000');
+
+        Livewire::actingAs($this->userWithRole(UserRole::ProjectManager))
+            ->test(ProjectShow::class, ['project' => $project])
+            ->assertSet('tab', 'overview')
+            ->assertViewHas('documents', fn ($documents) => $documents->isEmpty())
+            ->assertViewHas('reviews', fn ($reviews) => $reviews->isEmpty())
+            ->set('tab', 'documents')
+            ->assertViewHas('documents', fn ($documents) => $documents->count() === 1)
+            ->assertViewHas('reviews', fn ($reviews) => $reviews->isEmpty());
+    }
+
+    /**
+     * A project logs almost nothing on its own, so the feed merges in its
+     * documents' entries — that is what the tab is actually for.
+     */
+    public function test_the_activity_tab_merges_the_projects_and_its_documents_entries(): void
+    {
+        [$project, $document] = $this->projectWithWorkflow('DDD-04', 'PI-4000');
+
+        activity('document')
+            ->performedOn($document)
+            ->event('approved')
+            ->log('document.approved');
+
+        Livewire::actingAs($this->userWithRole(UserRole::ProjectManager))
+            ->test(ProjectShow::class, ['project' => $project])
+            ->set('tab', 'activity')
+            ->assertViewHas('activities', function ($activities) use ($project, $document) {
+                $subjects = $activities->map(
+                    fn ($activity) => $activity->subject_type.':'.$activity->subject_id,
+                );
+
+                return $subjects->contains(Project::class.':'.$project->id)
+                    && $subjects->contains(Document::class.':'.$document->id);
+            });
+    }
+
+    public function test_the_activity_tab_excludes_another_projects_documents(): void
+    {
+        [$project] = $this->projectWithWorkflow('EEE-05', 'PI-5000');
+        [, $otherDocument] = $this->projectWithWorkflow('FFF-06', 'PI-6000');
+
+        activity('document')
+            ->performedOn($otherDocument)
+            ->event('approved')
+            ->log('document.approved');
+
+        Livewire::actingAs($this->userWithRole(UserRole::ProjectManager))
+            ->test(ProjectShow::class, ['project' => $project])
+            ->set('tab', 'activity')
+            ->assertViewHas('activities', function ($activities) use ($otherDocument) {
+                return $activities->doesntContain(
+                    fn ($activity) => $activity->subject_type === Document::class
+                        && $activity->subject_id === $otherDocument->id,
+                );
+            });
     }
 }

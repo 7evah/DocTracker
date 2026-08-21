@@ -94,6 +94,10 @@ Log out, log in as **chef.projet@docflow.test**.
   the **Tâches** tab, click **Nouvelle tâche**, create one (e.g. "Réunion
   de lancement", assign to yourself, due next week) — confirm it appears
   and the project/document fields were pre-filled and locked.
+- [ ] Click through the other four tabs — **Documents**, **Revues**,
+  **Approbations**, **Activité**. All four are empty except *Activité*,
+  which already shows "a créé le projet". Each empty state should explain
+  what will appear there, not just say "nothing".
 - [ ] Dashboard now shows **1** under Projects.
 
 *Leave this account signed in conceptually — you'll return as PM to assign
@@ -198,6 +202,16 @@ Log in as **approbateur@docflow.test**.
 - [ ] `ingenieur1@docflow.test` (the document's author) should have
   received a "document approved" notification — log in as them to check
   the bell.
+- [ ] Go back to the **project** (`/projects`, open `OCP-GA-2026`) and
+  re-check the four tabs now that there is history behind them:
+  - **Documents** lists `PI-1023` at revision B, status *Approuvé*.
+  - **Revues** lists both passes on it — revision A *Révision demandée*,
+    revision B *Approuvé*.
+  - **Approbations** lists all three signed steps with their signers.
+  - **Activité** reads as a full project timeline, oldest at the bottom:
+    "a créé le projet" through to "a approuvé le document".
+
+  Every row links back out to the document or review it belongs to.
 
 ## 11. Try a rejection path too
 
