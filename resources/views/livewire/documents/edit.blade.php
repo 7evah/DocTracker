@@ -25,9 +25,9 @@
                     @endforeach
                 </flux:select>
 
-                <flux:input wire:model="title" :label="__('documents.fields.title')" class="sm:col-span-2" required />
+                <flux:input wire:model="title" :label="__('documents.fields.title')" field:class="sm:col-span-2" required />
 
-                <flux:textarea wire:model="description" :label="__('documents.fields.description')" rows="4" class="sm:col-span-2" />
+                <flux:textarea wire:model="description" :label="__('documents.fields.description')" rows="4" field:class="sm:col-span-2" />
             </div>
 
             {{-- Make the immutability rule explicit rather than leaving the

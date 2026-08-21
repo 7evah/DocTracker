@@ -27,7 +27,7 @@
                     :description="$this->isEditing()
                         ? __('admin.users.password_hint')
                         : __('admin.users.password_new_hint')"
-                    class="sm:col-span-2"
+                    field:class="sm:col-span-2"
                     viewable
                     :required="! $this->isEditing()"
                 />

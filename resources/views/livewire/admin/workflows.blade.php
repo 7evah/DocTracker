@@ -109,7 +109,7 @@
                     wire:model="description"
                     :label="__('admin.workflows.fields.description')"
                     rows="2"
-                    class="sm:col-span-2"
+                    field:class="sm:col-span-2"
                 />
             </div>
 
@@ -136,55 +136,68 @@
                     </flux:button>
                 </div>
 
-                <div class="flex flex-col gap-3">
+                <div class="flex flex-col gap-4">
                     @foreach ($steps as $index => $step)
                         <div
                             wire:key="step-{{ $index }}"
-                            class="grid grid-cols-2 items-end gap-2 rounded-lg border border-zinc-200 p-3 sm:grid-cols-12 dark:border-zinc-700"
+                            class="flex flex-col gap-4 rounded-lg border border-zinc-200 p-4 sm:flex-row sm:items-center dark:border-zinc-700"
                         >
-                            <flux:input
-                                wire:model="steps.{{ $index }}.step_order"
-                                type="number"
-                                min="1"
-                                :label="__('admin.workflows.fields.step_order')"
-                                class="sm:col-span-2"
-                            />
-
-                            <flux:select
-                                wire:model="steps.{{ $index }}.role"
-                                :label="__('admin.workflows.fields.role')"
-                                class="sm:col-span-3"
+                            {{-- Step number as a badge, echoing the approval
+                                 stepper's own visual language, rather than
+                                 leaving "which step is this" to a plain
+                                 number input buried in the grid (§43). Live
+                                 so it tracks the field if renumbered. --}}
+                            <span
+                                class="grid size-8 shrink-0 place-items-center rounded-full bg-brand-600 text-sm font-semibold text-white dark:bg-brand-500"
+                                aria-hidden="true"
                             >
-                                @foreach ($roles as $value => $label)
-                                    <flux:select.option :value="$value">{{ $label }}</flux:select.option>
-                                @endforeach
-                            </flux:select>
+                                {{ $step['step_order'] }}
+                            </span>
 
-                            <flux:input
-                                wire:model="steps.{{ $index }}.label"
-                                :label="__('admin.workflows.fields.label')"
-                                class="col-span-2 sm:col-span-4"
-                            />
+                            <div class="grid flex-1 grid-cols-2 items-end gap-x-4 gap-y-5 sm:grid-cols-12">
+                                <flux:input
+                                    wire:model.live="steps.{{ $index }}.step_order"
+                                    type="number"
+                                    min="1"
+                                    :label="__('admin.workflows.fields.step_order')"
+                                    field:class="col-span-2 sm:col-span-2"
+                                />
 
-                            <flux:input
-                                wire:model="steps.{{ $index }}.turnaround_days"
-                                type="number"
-                                min="1"
-                                :label="__('admin.workflows.fields.turnaround_days')"
-                                class="sm:col-span-2"
-                            />
+                                <flux:select
+                                    wire:model="steps.{{ $index }}.role"
+                                    :label="__('admin.workflows.fields.role')"
+                                    field:class="col-span-2 sm:col-span-4"
+                                >
+                                    @foreach ($roles as $value => $label)
+                                        <flux:select.option :value="$value">{{ $label }}</flux:select.option>
+                                    @endforeach
+                                </flux:select>
 
-                            <div class="sm:col-span-1">
-                                <flux:button
-                                    wire:click="removeStep({{ $index }})"
-                                    type="button"
-                                    size="sm"
-                                    variant="ghost"
-                                    icon="trash"
-                                    :disabled="count($steps) <= 1"
-                                    :aria-label="__('admin.workflows.remove_step')"
+                                <flux:input
+                                    wire:model="steps.{{ $index }}.label"
+                                    :label="__('admin.workflows.fields.label')"
+                                    field:class="col-span-2 sm:col-span-4"
+                                />
+
+                                <flux:input
+                                    wire:model="steps.{{ $index }}.turnaround_days"
+                                    type="number"
+                                    min="1"
+                                    :label="__('admin.workflows.fields.turnaround_days')"
+                                    field:class="col-span-2 sm:col-span-2"
                                 />
                             </div>
+
+                            <flux:button
+                                wire:click="removeStep({{ $index }})"
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                icon="trash"
+                                :disabled="count($steps) <= 1"
+                                :aria-label="__('admin.workflows.remove_step')"
+                                class="self-end sm:self-center"
+                            />
                         </div>
                     @endforeach
                 </div>

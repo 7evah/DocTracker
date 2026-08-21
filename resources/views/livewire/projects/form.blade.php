@@ -40,7 +40,7 @@
                     wire:model="name"
                     :label="__('projects.fields.name')"
                     required
-                    class="sm:col-span-2"
+                    field:class="sm:col-span-2"
                 />
 
                 <flux:input wire:model="client" :label="__('projects.fields.client')" />
@@ -51,7 +51,7 @@
                     wire:model="manager_id"
                     :label="__('projects.fields.manager')"
                     :description="__('projects.hints.manager')"
-                    class="sm:col-span-2"
+                    field:class="sm:col-span-2"
                 >
                     <flux:select.option value="">{{ __('projects.no_manager') }}</flux:select.option>
                     @foreach ($managers as $id => $managerName)
@@ -76,7 +76,7 @@
                     wire:model="description"
                     :label="__('projects.fields.description')"
                     rows="4"
-                    class="sm:col-span-2"
+                    field:class="sm:col-span-2"
                 />
             </div>
         </x-panel>

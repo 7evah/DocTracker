@@ -45,7 +45,7 @@
                 <flux:input
                     wire:model="title"
                     :label="__('documents.fields.title')"
-                    class="sm:col-span-2"
+                    field:class="sm:col-span-2"
                     required
                 />
 
@@ -53,7 +53,7 @@
                     wire:model="description"
                     :label="__('documents.fields.description')"
                     rows="3"
-                    class="sm:col-span-2"
+                    field:class="sm:col-span-2"
                 />
             </div>
         </x-panel>

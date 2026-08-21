@@ -107,7 +107,7 @@
                 <flux:input
                     wire:model="name"
                     :label="__('admin.disciplines.fields.name')"
-                    class="sm:col-span-2"
+                    field:class="sm:col-span-2"
                     required
                 />
 
@@ -115,7 +115,7 @@
                     wire:model="description"
                     :label="__('admin.disciplines.fields.description')"
                     rows="2"
-                    class="sm:col-span-2"
+                    field:class="sm:col-span-2"
                 />
             </div>
 
