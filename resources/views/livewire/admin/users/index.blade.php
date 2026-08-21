@@ -81,7 +81,25 @@
                     <ui-table-scroll-area>; see app.css) once the viewport is
                     too narrow for even these shares (§16, §42).
                 --}}
-                <flux:table class="w-full min-w-175">
+                {{--
+                    Flux zeroes the outer padding of the first and last columns
+                    (first:ps-0 / last:pe-0) so a table can sit flush inside a
+                    container that already has its own padding. This panel is
+                    :padded="false", so nothing reinstates it and the avatar
+                    ends up pressed against the panel border. Padding both edges
+                    back in here indents the row to match the padding every
+                    other panel in the app uses.
+
+                    Targeting the cells from the table (rather than adding
+                    first:ps-4 to each column and cell) keeps it in one place
+                    and wins on specificity — a descendant selector outranks
+                    Flux's own first:/last: utilities regardless of source order.
+                --}}
+                <flux:table
+                    class="w-full min-w-175
+                        [&_th:first-child]:ps-4 [&_td:first-child]:ps-4
+                        [&_th:last-child]:pe-4 [&_td:last-child]:pe-4"
+                >
                     <flux:table.columns>
                         <flux:table.column class="w-[26%]">{{ __('common.labels.name') }}</flux:table.column>
                         <flux:table.column class="w-[20%]">{{ __('common.labels.department') }}</flux:table.column>
