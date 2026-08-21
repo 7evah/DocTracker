@@ -60,43 +60,35 @@
             <x-panel :padded="false">
                 {{--
                     Flux's table is table-fixed, so column widths come from this
-                    header row alone. Three attempts got progressively closer:
+                    header row alone — and on a wide screen six columns of short
+                    content always leave slack somewhere. The only real question
+                    is where that slack goes, and the answer is: spread thinly
+                    across the columns, never pooled.
 
-                    1. No widths at all: six columns split space equally
-                       regardless of content, leaving the profile column (avatar
-                       + two lines of text) too narrow and pushing the status/
-                       activity text and the actions button past the edge.
+                    Letting the table size to its content (no w-full) pools it
+                    into one large void to the right of the table, inside the
+                    panel's own border — which reads as a broken layout rather
+                    than a deliberate margin. Percentages plus w-full spread it
+                    instead, so each column simply has a little trailing room
+                    and the row still reaches the panel edge.
 
-                    2. Fixed pixel widths (w-64 etc): fixed that, but table-fixed
-                       treats them as an absolute total, not a share, so the
-                       table stopped growing past ~820px on wide screens — a
-                       dead gap after the table, actions stranded away from it.
-
-                    3. Percentages + w-full: fixed *that* by scaling to whatever
-                       width the table has — but a percentage is static per
-                       column regardless of what that row's content actually
-                       needs, so on a wide screen "Hamza El Badaoui" sits in a
-                       column wide enough for a much longer name, and the slack
-                       shows up as visible empty space *inside* the column.
-
-                    The actual right answer: don't force the table to fill the
-                    panel at all. Content-sized fixed widths (back to option 2)
-                    are correct — the fix for the dead-gap complaint isn't to
-                    stretch the table, it's to accept one clean gap to the right
-                    of a naturally-sized table rather than distributing that gap
-                    as slack inside every column. min-width is still what forces
-                    genuine overflow (and therefore a real scrollbar via Flux's
-                    own <ui-table-scroll-area> — see app.css) once a narrow
-                    viewport can't fit even these modest widths (§16, §42).
+                    The percentages are weighted by how long each column's
+                    content actually runs — Nom (name + email) and the two
+                    free-text columns carry the most, Statut holds a fixed-width
+                    badge and needs the least — so no single column ends up
+                    conspicuously empty. min-width still forces genuine overflow
+                    (and therefore a real scrollbar via Flux's own
+                    <ui-table-scroll-area>; see app.css) once the viewport is
+                    too narrow for even these shares (§16, §42).
                 --}}
-                <flux:table class="min-w-175">
+                <flux:table class="w-full min-w-175">
                     <flux:table.columns>
-                        <flux:table.column class="w-56">{{ __('common.labels.name') }}</flux:table.column>
-                        <flux:table.column class="w-36">{{ __('common.labels.department') }}</flux:table.column>
-                        <flux:table.column class="w-32">{{ __('admin.users.roles') }}</flux:table.column>
-                        <flux:table.column class="w-28">{{ __('common.labels.status') }}</flux:table.column>
-                        <flux:table.column class="w-36">{{ __('admin.users.last_activity') }}</flux:table.column>
-                        <flux:table.column align="end" class="w-12"></flux:table.column>
+                        <flux:table.column class="w-[26%]">{{ __('common.labels.name') }}</flux:table.column>
+                        <flux:table.column class="w-[20%]">{{ __('common.labels.department') }}</flux:table.column>
+                        <flux:table.column class="w-[16%]">{{ __('admin.users.roles') }}</flux:table.column>
+                        <flux:table.column class="w-[11%]">{{ __('common.labels.status') }}</flux:table.column>
+                        <flux:table.column class="w-[20%]">{{ __('admin.users.last_activity') }}</flux:table.column>
+                        <flux:table.column align="end" class="w-[7%]"></flux:table.column>
                     </flux:table.columns>
 
                     <flux:table.rows>
