@@ -127,6 +127,7 @@ return [
             'deleted' => 'Circuit supprimé.',
             'needs_steps' => 'Un circuit doit comporter au moins une étape.',
             'duplicate_order' => 'Deux étapes ne peuvent pas avoir le même ordre.',
+            'default_must_be_active' => 'Un circuit par défaut doit être actif.',
         ],
         'empty' => [
             'title' => 'Aucun circuit',

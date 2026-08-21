@@ -145,6 +145,24 @@ class Workflows extends Component
             return;
         }
 
+        // is_default=true with is_active=false is a silent trap:
+        // ApprovalWorkflow::resolveFor() only ever looks at active()
+        // workflows, so an inactive default is invisible to it — every
+        // future document would skip the approval circuit entirely with
+        // no error anywhere (§29). "Actif" is checked by default when the
+        // form opens (see startNew()), so this is easy to hit by clicking
+        // it thinking you're turning it *on*. Caught here rather than
+        // synced client-side: these two checkboxes use plain (deferred)
+        // wire:model, so two clicks in the same request land in whatever
+        // order Livewire processes the payload — auto-correcting one from
+        // the other race-prone; rejecting the combination once, here, does
+        // not.
+        if ($validated['is_default'] && ! $validated['is_active']) {
+            $this->addError('is_active', __('admin.workflows.messages.default_must_be_active'));
+
+            return;
+        }
+
         DB::transaction(function () use ($validated) {
             $attributes = [
                 'name' => $validated['name'],

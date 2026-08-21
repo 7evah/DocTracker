@@ -54,7 +54,9 @@ will eventually pass through.
   2. Step 2, role **Chef de projet**, label "Validation chef de projet", 3 days
   3. Step 3, role **Approbateur**, label "Approbation finale", 3 days
 
-  Tick **Circuit par défaut**, leave **Projet** empty (global), save.
+  Tick **Circuit par défaut** (leave **Actif** as-is — it's already checked
+  by default, so clicking it would turn it *off*), leave **Projet** empty
+  (global), save.
   *Without this step, documents will jump straight from review to Approved
   with no signature chain — do this first.*
 - [ ] **Administration → Disciplines** (`/admin/disciplines`) — the 10

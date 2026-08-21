@@ -430,6 +430,33 @@ class AdministrationTest extends TestCase
         $this->assertNull(ApprovalWorkflow::where('name', 'Circuit incohérent')->first());
     }
 
+    /*
+     * "Actif" is checked by default when the form opens, so clicking it
+     * (expecting to turn it *on*) actually turns it off. An inactive
+     * default is invisible to ApprovalWorkflow::resolveFor() — every
+     * future document would silently skip the approval circuit with no
+     * error anywhere. Rejected here rather than auto-corrected, so the
+     * person who did it sees why (§29).
+     */
+    public function test_a_default_workflow_cannot_be_saved_inactive(): void
+    {
+        [$admin] = $this->admins();
+
+        Livewire::actingAs($admin)
+            ->test(AdminWorkflows::class)
+            ->call('startNew')
+            ->set('name', 'Défaut inactif')
+            ->set('is_default', true)
+            ->set('is_active', false)
+            ->set('steps', [
+                ['step_order' => 1, 'role' => UserRole::Reviewer->value, 'label' => '', 'turnaround_days' => 3],
+            ])
+            ->call('save')
+            ->assertHasErrors('is_active');
+
+        $this->assertNull(ApprovalWorkflow::where('name', 'Défaut inactif')->first());
+    }
+
     public function test_a_workflow_requires_at_least_one_step(): void
     {
         [$admin] = $this->admins();
