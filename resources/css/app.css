@@ -76,6 +76,22 @@
         cursor: pointer;
     }
 
+    /*
+    | <flux:table> wraps its <table> in <ui-table-scroll-area>, a custom
+    | element the Blade stub in this installed Flux version (v2.15.1)
+    | references but never registers or styles in the compiled flux.css/
+    | flux.min.js — it ships zero occurrences of the tag. An unregistered
+    | custom element defaults to display:inline per spec, which breaks the
+    | table's normal block-level width/overflow computation and silently
+    | defeats any overflow-x-auto wrapper placed around it. Forcing it
+    | block here is what actually lets a wide table scroll in place
+    | instead of the page (§16), rather than working around it with an
+    | extra wrapper div on every table.
+    */
+    ui-table-scroll-area {
+        display: block;
+    }
+
     /* Visible focus for keyboard users everywhere (§38 accessibility). */
     :focus-visible {
         outline: 2px solid var(--color-brand-500);
