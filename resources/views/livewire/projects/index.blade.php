@@ -84,31 +84,45 @@
         --}}
         <div class="max-lg:hidden" wire:loading.class="opacity-60">
             <x-panel :padded="false">
-                <flux:table>
+                {{--
+                    Flux's table is table-fixed, so the column widths come from
+                    this header row alone. Percentages plus w-full spread the
+                    slack thinly across every column instead of pooling it into
+                    one conspicuous gap, and they are weighted by how long each
+                    column's content actually runs. min-width forces genuine
+                    overflow — and therefore a real scrollbar via Flux's own
+                    <ui-table-scroll-area>, see app.css — once the viewport is
+                    too narrow for even these shares (§16, §42).
+                --}}
+                <flux:table
+                    class="w-full min-w-230
+                        [&_th:first-child]:ps-4 [&_td:first-child]:ps-4
+                        [&_th:last-child]:pe-4 [&_td:last-child]:pe-4"
+                >
                     <flux:table.columns>
-                        <flux:table.column>{{ __('projects.fields.project_code') }}</flux:table.column>
-                        <flux:table.column>{{ __('projects.fields.name') }}</flux:table.column>
-                        <flux:table.column>{{ __('projects.fields.client') }}</flux:table.column>
-                        <flux:table.column>{{ __('projects.fields.manager') }}</flux:table.column>
-                        <flux:table.column>{{ __('projects.stats.progress') }}</flux:table.column>
-                        <flux:table.column>{{ __('projects.fields.status') }}</flux:table.column>
-                        <flux:table.column align="end">{{ __('projects.fields.end_date') }}</flux:table.column>
+                        <flux:table.column class="w-[14%]">{{ __('projects.fields.project_code') }}</flux:table.column>
+                        <flux:table.column class="w-[18%]">{{ __('projects.fields.name') }}</flux:table.column>
+                        <flux:table.column class="w-[13%]">{{ __('projects.fields.client') }}</flux:table.column>
+                        <flux:table.column class="w-[17%]">{{ __('projects.fields.manager') }}</flux:table.column>
+                        <flux:table.column class="w-[14%]">{{ __('projects.stats.progress') }}</flux:table.column>
+                        <flux:table.column class="w-[11%]">{{ __('projects.fields.status') }}</flux:table.column>
+                        <flux:table.column align="end" class="w-[13%]">{{ __('projects.fields.end_date') }}</flux:table.column>
                     </flux:table.columns>
 
                     <flux:table.rows>
                         @foreach ($projects as $project)
                             <flux:table.row :key="$project->id">
-                                <flux:table.cell>
+                                <flux:table.cell class="truncate">
                                     <flux:link :href="route('projects.show', $project)" class="font-medium" wire:navigate>
                                         {{ $project->project_code }}
                                     </flux:link>
                                 </flux:table.cell>
 
-                                <flux:table.cell class="max-w-xs truncate">
+                                <flux:table.cell class="truncate">
                                     <span title="{{ $project->name }}">{{ $project->name }}</span>
                                 </flux:table.cell>
 
-                                <flux:table.cell class="text-zinc-500 dark:text-zinc-400">
+                                <flux:table.cell class="truncate text-zinc-500 dark:text-zinc-400">
                                     {{ $project->client ?: '—' }}
                                 </flux:table.cell>
 

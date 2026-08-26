@@ -75,5 +75,11 @@
             </div>
         </main>
     </div>
+
+    {{-- Flux ships its interactive behaviour here. Without it the password
+         field's reveal toggle throws "fluxInputViewable is not defined" on
+         every login page load, and any Flux control on an auth screen is
+         inert — the app layout has always had it, this one was missed. --}}
+    @fluxScripts
 </body>
 </html>

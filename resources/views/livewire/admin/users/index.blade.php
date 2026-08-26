@@ -96,7 +96,7 @@
                     Flux's own first:/last: utilities regardless of source order.
                 --}}
                 <flux:table
-                    class="w-full min-w-175
+                    class="w-full min-w-230
                         [&_th:first-child]:ps-4 [&_td:first-child]:ps-4
                         [&_th:last-child]:pe-4 [&_td:last-child]:pe-4"
                 >
@@ -135,14 +135,21 @@
                                     {{ $user->department ?: '—' }}
                                 </flux:table.cell>
 
+                                {{-- Badges wrap rather than run off the column:
+                                     Flux sets whitespace-nowrap on the whole
+                                     table, so a user holding two or three roles
+                                     would otherwise push them past the panel
+                                     border instead of onto a second line. --}}
                                 <flux:table.cell>
-                                    @forelse ($user->roles as $role)
-                                        <flux:badge size="sm" color="zinc" class="me-1">
-                                            {{ __('enums.role.'.$role->name) }}
-                                        </flux:badge>
-                                    @empty
-                                        <span class="text-xs text-zinc-400">{{ __('admin.users.no_role') }}</span>
-                                    @endforelse
+                                    <div class="flex flex-wrap items-center gap-1">
+                                        @forelse ($user->roles as $role)
+                                            <flux:badge size="sm" color="zinc">
+                                                {{ __('enums.role.'.$role->name) }}
+                                            </flux:badge>
+                                        @empty
+                                            <span class="text-xs text-zinc-400">{{ __('admin.users.no_role') }}</span>
+                                        @endforelse
+                                    </div>
                                 </flux:table.cell>
 
                                 <flux:table.cell>

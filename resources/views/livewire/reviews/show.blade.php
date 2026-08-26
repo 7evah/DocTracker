@@ -110,7 +110,7 @@
 
                 @if ($version && $storage->exists($version) && in_array($version->mime_type, config('documents.previewable_mimes'), true))
                     <object
-                        data="{{ route('documents.download', [$document, $version]) }}#toolbar=1"
+                        data="{{ route('documents.preview', [$document, $version]) }}#toolbar=1"
                         type="{{ $version->mime_type }}"
                         class="h-[60vh] w-full"
                         aria-label="{{ $document?->title }}"

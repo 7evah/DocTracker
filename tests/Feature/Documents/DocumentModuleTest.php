@@ -379,6 +379,83 @@ class DocumentModuleTest extends TestCase
             ->assertNotFound();
     }
 
+    /*
+     * The in-page viewer needs an inline disposition. It used to point at the
+     * download route, whose attachment disposition made the browser download
+     * the file on every review page load — a Save-As window on Windows — while
+     * the preview itself stayed blank, because browsers will not render an
+     * attachment inline.
+     */
+    public function test_the_preview_route_is_served_inline(): void
+    {
+        $engineer = $this->userWithRole(UserRole::Engineer);
+        $document = $this->documentFor($engineer);
+        $version = $document->versions()->first();
+
+        $response = $this->actingAs($engineer)
+            ->get(route('documents.preview', [$document, $version]))
+            ->assertOk();
+
+        $this->assertStringStartsWith(
+            'inline;',
+            $response->headers->get('content-disposition'),
+        );
+    }
+
+    public function test_the_download_route_is_served_as_an_attachment(): void
+    {
+        $engineer = $this->userWithRole(UserRole::Engineer);
+        $document = $this->documentFor($engineer);
+        $version = $document->versions()->first();
+
+        $response = $this->actingAs($engineer)
+            ->get(route('documents.download', [$document, $version]))
+            ->assertOk();
+
+        $this->assertStringStartsWith(
+            'attachment;',
+            $response->headers->get('content-disposition'),
+        );
+    }
+
+    /**
+     * Previewing fires automatically whenever a page holding the viewer is
+     * rendered, so logging it would bury the document's real history under one
+     * entry per page view — which is exactly what happened before (§34).
+     */
+    public function test_previewing_is_not_recorded_in_the_audit_trail(): void
+    {
+        $engineer = $this->userWithRole(UserRole::Engineer);
+        $document = $this->documentFor($engineer);
+        $version = $document->versions()->first();
+
+        $this->actingAs($engineer)
+            ->get(route('documents.preview', [$document, $version]))
+            ->assertOk();
+
+        $this->assertDatabaseMissing('activity_log', [
+            'subject_id' => $document->id,
+            'description' => 'document.downloaded',
+        ]);
+    }
+
+    public function test_the_preview_route_enforces_the_same_guards_as_download(): void
+    {
+        $engineer = $this->userWithRole(UserRole::Engineer);
+
+        $documentA = $this->documentFor($engineer);
+        $documentB = $this->documentFor($engineer, number: 'ME-8888');
+
+        // Guests are turned away.
+        $this->get(route('documents.preview', [$documentA, $documentA->versions()->first()]))
+            ->assertRedirect(route('login'));
+
+        // A version belonging to another document cannot be paired with this one.
+        $this->actingAs($engineer)
+            ->get(route('documents.preview', [$documentA, $documentB->versions()->first()]))
+            ->assertNotFound();
+    }
+
     public function test_downloads_are_recorded_in_the_audit_trail(): void
     {
         $engineer = $this->userWithRole(UserRole::Engineer);

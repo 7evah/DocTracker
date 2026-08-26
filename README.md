@@ -59,6 +59,24 @@ together:
 composer dev
 ```
 
+### A note on `php artisan serve`
+
+PHP's built-in dev server handles **one request at a time**, and on Windows
+it cannot be given extra workers (`PHP_CLI_SERVER_WORKERS` is POSIX-only).
+Measured on this project: four parallel requests serialise into a staircase,
+and a Livewire click that normally answers in ~520 ms takes **~5.4 s** when
+eight requests are queued ahead of it. That is what "I click and nothing
+happens until I refresh" looks like — the click is sent and its spinner is
+running, but the single worker is busy.
+
+If the UI feels unresponsive:
+
+- **Serve through Apache instead** (XAMPP is already required for MySQL).
+  Point a vhost at `public/` and you get real concurrency.
+- **Turn the debug bar off when you are not reading it** —
+  `DEBUGBAR_ENABLED=false` in `.env` took a request from ~210 ms to ~93 ms
+  here, more than doubling how many clicks the server absorbs per second.
+
 ## Tests
 
 ```bash

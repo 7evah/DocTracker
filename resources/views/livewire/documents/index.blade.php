@@ -111,31 +111,45 @@
         {{-- Desktop table --}}
         <div class="max-lg:hidden" wire:loading.class="opacity-60">
             <x-panel :padded="false">
-                <flux:table>
+                {{--
+                    Flux's table is table-fixed, so the column widths come from
+                    this header row alone. Percentages plus w-full spread the
+                    slack thinly across every column instead of pooling it into
+                    one conspicuous gap, and they are weighted by how long each
+                    column's content actually runs. min-width forces genuine
+                    overflow — and therefore a real scrollbar via Flux's own
+                    <ui-table-scroll-area>, see app.css — once the viewport is
+                    too narrow for even these shares (§16, §42).
+                --}}
+                <flux:table
+                    class="w-full min-w-230
+                        [&_th:first-child]:ps-4 [&_td:first-child]:ps-4
+                        [&_th:last-child]:pe-4 [&_td:last-child]:pe-4"
+                >
                     <flux:table.columns>
-                        <flux:table.column>{{ __('documents.fields.document_number') }}</flux:table.column>
-                        <flux:table.column>{{ __('documents.fields.title') }}</flux:table.column>
-                        <flux:table.column>{{ __('documents.fields.project') }}</flux:table.column>
-                        <flux:table.column>{{ __('documents.fields.discipline') }}</flux:table.column>
-                        <flux:table.column align="center">{{ __('documents.fields.revision') }}</flux:table.column>
-                        <flux:table.column>{{ __('documents.fields.status') }}</flux:table.column>
-                        <flux:table.column align="end">{{ __('common.labels.updated_at') }}</flux:table.column>
+                        <flux:table.column class="w-[12%]">{{ __('documents.fields.document_number') }}</flux:table.column>
+                        <flux:table.column class="w-[24%]">{{ __('documents.fields.title') }}</flux:table.column>
+                        <flux:table.column class="w-[14%]">{{ __('documents.fields.project') }}</flux:table.column>
+                        <flux:table.column class="w-[9%]">{{ __('documents.fields.discipline') }}</flux:table.column>
+                        <flux:table.column align="center" class="w-[7%]">{{ __('documents.fields.revision') }}</flux:table.column>
+                        <flux:table.column class="w-[17%]">{{ __('documents.fields.status') }}</flux:table.column>
+                        <flux:table.column align="end" class="w-[17%]">{{ __('common.labels.updated_at') }}</flux:table.column>
                     </flux:table.columns>
 
                     <flux:table.rows>
                         @foreach ($documents as $document)
                             <flux:table.row :key="$document->id">
-                                <flux:table.cell>
+                                <flux:table.cell class="truncate">
                                     <flux:link :href="route('documents.show', $document)" class="font-mono text-sm font-medium" wire:navigate>
                                         {{ $document->document_number }}
                                     </flux:link>
                                 </flux:table.cell>
 
-                                <flux:table.cell class="max-w-xs truncate">
+                                <flux:table.cell class="truncate">
                                     <span title="{{ $document->title }}">{{ $document->title }}</span>
                                 </flux:table.cell>
 
-                                <flux:table.cell class="text-zinc-500 dark:text-zinc-400">
+                                <flux:table.cell class="truncate text-zinc-500 dark:text-zinc-400">
                                     {{ $document->project?->project_code ?? '—' }}
                                 </flux:table.cell>
 

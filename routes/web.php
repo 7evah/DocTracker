@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\DocumentDownloadController;
+use App\Http\Controllers\DocumentFileController;
 use App\Http\Controllers\ReportExportController;
 use App\Livewire\Admin\Disciplines as AdminDisciplines;
 use App\Livewire\Admin\Roles as AdminRoles;
@@ -85,8 +85,14 @@ Route::middleware(['auth'])->group(function () {
     | alongside the document so the controller can verify it belongs to it,
     | rather than trusting a bare version id (§32, §53).
     */
-    Route::get('documents/{document}/versions/{version}/download', DocumentDownloadController::class)
+    Route::get('documents/{document}/versions/{version}/download', [DocumentFileController::class, 'download'])
         ->name('documents.download');
+
+    // Same file, inline disposition, for the in-page viewer. Separate from the
+    // download route so opening a page that embeds the viewer is not recorded
+    // as somebody downloading the document.
+    Route::get('documents/{document}/versions/{version}/preview', [DocumentFileController::class, 'preview'])
+        ->name('documents.preview');
 
     /*
     |----------------------------------------------------------------------

@@ -65,17 +65,36 @@
     @else
         <div class="max-lg:hidden" wire:loading.class="opacity-60">
             <x-panel :padded="false">
-                <flux:table>
+                {{--
+                    Flux's table is table-fixed, so the column widths come from
+                    this header row alone. Percentages plus w-full spread the
+                    slack thinly across every column instead of pooling it into
+                    one conspicuous gap, weighted by how long each column's
+                    content actually runs. The owner column is conditional, so
+                    each set is declared to total 100% on its own — leaving one
+                    branch short would let the browser distribute the remainder
+                    wherever it liked. min-width forces genuine overflow, and
+                    therefore a real scrollbar via Flux's own
+                    <ui-table-scroll-area> (see app.css), once the viewport is
+                    too narrow for even these shares (§16, §42).
+                --}}
+                @php $showsOwner = $scope === 'all' && $this->canSeeAll(); @endphp
+
+                <flux:table
+                    class="w-full min-w-230
+                        [&_th:first-child]:ps-4 [&_td:first-child]:ps-4
+                        [&_th:last-child]:pe-4 [&_td:last-child]:pe-4"
+                >
                     <flux:table.columns>
-                        <flux:table.column>{{ __('approvals.fields.document') }}</flux:table.column>
-                        <flux:table.column>{{ __('documents.fields.project') }}</flux:table.column>
-                        <flux:table.column align="center">{{ __('approvals.fields.step') }}</flux:table.column>
-                        @if ($scope === 'all' && $this->canSeeAll())
-                            <flux:table.column>{{ __('approvals.fields.approver') }}</flux:table.column>
+                        <flux:table.column :class="$showsOwner ? 'w-[24%]' : 'w-[29%]'">{{ __('approvals.fields.document') }}</flux:table.column>
+                        <flux:table.column :class="$showsOwner ? 'w-[15%]' : 'w-[17%]'">{{ __('documents.fields.project') }}</flux:table.column>
+                        <flux:table.column align="center" :class="$showsOwner ? 'w-[7%]' : 'w-[8%]'">{{ __('approvals.fields.step') }}</flux:table.column>
+                        @if ($showsOwner)
+                            <flux:table.column class="w-[16%]">{{ __('approvals.fields.approver') }}</flux:table.column>
                         @endif
-                        <flux:table.column>{{ __('approvals.fields.deadline') }}</flux:table.column>
-                        <flux:table.column>{{ __('approvals.fields.status') }}</flux:table.column>
-                        <flux:table.column align="end"></flux:table.column>
+                        <flux:table.column :class="$showsOwner ? 'w-[14%]' : 'w-[16%]'">{{ __('approvals.fields.deadline') }}</flux:table.column>
+                        <flux:table.column :class="$showsOwner ? 'w-[18%]' : 'w-[22%]'">{{ __('approvals.fields.status') }}</flux:table.column>
+                        <flux:table.column align="end" :class="$showsOwner ? 'w-[6%]' : 'w-[8%]'"></flux:table.column>
                     </flux:table.columns>
 
                     <flux:table.rows>
@@ -91,13 +110,13 @@
                                     >
                                         {{ $document?->document_number ?? '—' }}
                                     </flux:link>
-                                    <p class="max-w-xs truncate text-xs text-zinc-500 dark:text-zinc-400">
+                                    <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">
                                         {{ $document?->title }}
                                         · {{ __('documents.revision_label', ['revision' => $approval->documentVersion?->revision]) }}
                                     </p>
                                 </flux:table.cell>
 
-                                <flux:table.cell class="text-zinc-500 dark:text-zinc-400">
+                                <flux:table.cell class="truncate text-zinc-500 dark:text-zinc-400">
                                     {{ $document?->project?->project_code ?? '—' }}
                                 </flux:table.cell>
 
@@ -105,11 +124,11 @@
                                     {{ $approval->step }}
                                 </flux:table.cell>
 
-                                @if ($scope === 'all' && $this->canSeeAll())
-                                    <flux:table.cell>
+                                @if ($showsOwner)
+                                    <flux:table.cell class="truncate">
                                         @if ($approval->approver)
                                             <div class="flex items-center gap-2">
-                                                <x-user-avatar :user="$approval->approver" size="xs" />
+                                                <x-user-avatar :user="$approval->approver" size="xs" class="shrink-0" />
                                                 <span class="truncate">{{ $approval->approver->name }}</span>
                                             </div>
                                         @else
