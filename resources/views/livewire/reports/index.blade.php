@@ -152,30 +152,42 @@
                         />
                     </div>
                 @else
-                    {{-- Reports are inherently wide; scrolling is confined to
-                         this container so the page itself never scrolls
-                         sideways (§16). --}}
-                    <div class="overflow-x-auto">
-                        <flux:table>
-                            <flux:table.columns>
-                                @foreach ($result->headings as $heading)
-                                    <flux:table.column>{{ $heading }}</flux:table.column>
-                                @endforeach
-                            </flux:table.columns>
+                    {{--
+                        Unlike the listings, this table's columns are decided by
+                        the chosen report, so no per-column width can be given
+                        here. w-full keeps it flush with the panel instead of
+                        leaving a gap, table-fixed then shares the width evenly,
+                        and every cell truncates so a long title ellipsises
+                        rather than sliding under its neighbour. Reports are
+                        inherently wide, so <ui-table-scroll-area> (see app.css)
+                        still scrolls it in place rather than the page (§16).
+                    --}}
+                    <flux:table
+                        class="w-full min-w-190
+                            [&_td]:truncate
+                            [&_th:first-child]:ps-4 [&_td:first-child]:ps-4
+                            [&_th:last-child]:pe-4 [&_td:last-child]:pe-4"
+                    >
+                        <flux:table.columns>
+                            @foreach ($result->headings as $heading)
+                                <flux:table.column>{{ $heading }}</flux:table.column>
+                            @endforeach
+                        </flux:table.columns>
 
-                            <flux:table.rows>
-                                @foreach ($result->rows as $index => $row)
-                                    <flux:table.row :key="'row-'.$index">
-                                        @foreach ($row as $cell)
-                                            <flux:table.cell @class(['tabular-nums' => is_numeric($cell)])>
-                                                {{ $cell }}
-                                            </flux:table.cell>
-                                        @endforeach
-                                    </flux:table.row>
-                                @endforeach
-                            </flux:table.rows>
-                        </flux:table>
-                    </div>
+                        <flux:table.rows>
+                            @foreach ($rows as $index => $row)
+                                <flux:table.row :key="'row-'.$index">
+                                    @foreach ($row as $cell)
+                                        <flux:table.cell @class(['tabular-nums' => is_numeric($cell)])>
+                                            {{ $cell }}
+                                        </flux:table.cell>
+                                    @endforeach
+                                </flux:table.row>
+                            @endforeach
+                        </flux:table.rows>
+                    </flux:table>
+
+                    <flux:pagination :paginator="$rows" class="border-t border-zinc-200 p-4 dark:border-zinc-700" />
                 @endif
             </x-panel>
         </div>

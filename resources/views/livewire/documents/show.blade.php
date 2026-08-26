@@ -301,6 +301,8 @@
             @endif
         </x-panel>
 
+        <flux:pagination :paginator="$activities" class="mt-4" />
+
     {{-- Reviews on the current revision (§23) --}}
     @elseif ($tab === 'reviews')
         <x-panel :padded="false">
@@ -378,6 +380,8 @@
                         <x-comment :comment="$item" wire:key="doc-comment-{{ $item->id }}" />
                     @endforeach
                 </div>
+
+                <flux:pagination :paginator="$comments" class="mt-4" />
             @endif
         </x-panel>
 
@@ -478,6 +482,7 @@
                         />
                     @endforeach
                 </ul>
+                <flux:pagination :paginator="$tasks" class="border-t border-zinc-200 p-4 dark:border-zinc-700" />
             @endif
         </x-panel>
 

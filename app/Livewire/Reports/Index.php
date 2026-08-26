@@ -7,12 +7,20 @@ use App\Models\Discipline;
 use App\Models\Project;
 use App\Services\ReportService;
 use App\Support\Permissions;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\LengthAwarePaginator as Paginated;
+use Illuminate\Pagination\Paginator;
 use Illuminate\View\View;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Index extends Component
 {
+    use WithPagination;
+
+    public int $perPage = 25;
+
     #[Url(as: 'r', except: 'document_status_summary')]
     public string $report = 'document_status_summary';
 
@@ -31,6 +39,44 @@ class Index extends Component
     public function mount(): void
     {
         abort_unless(auth()->user()->can(Permissions::REPORTS_VIEW), 403);
+    }
+
+    /*
+    | Switching report or narrowing a filter produces a different, usually
+    | shorter result set, so staying on page 6 would strand the user on a
+    | blank table.
+    */
+    public function updated(string $property): void
+    {
+        if (in_array($property, ['report', 'project', 'discipline', 'from', 'to'], true)) {
+            $this->resetPage();
+        }
+    }
+
+    /**
+     * Paginate the report's rows for display only.
+     *
+     * ReportService returns plain arrays rather than a query — the grouped
+     * reports are assembled in PHP — so this slices in memory. The exception
+     * reports (overdue reviews and approvals) are the ones that grow with the
+     * data and would otherwise render every row at once (§28). The export
+     * route builds its own ReportResult and is deliberately untouched: a CSV
+     * of page 1 of 40 would be worse than useless.
+     *
+     * @param  list<list<string|int|float|null>>  $rows
+     * @return LengthAwarePaginator<int, list<string|int|float|null>>
+     */
+    private function paginateRows(array $rows): LengthAwarePaginator
+    {
+        $page = Paginator::resolveCurrentPage();
+
+        return new Paginated(
+            array_slice($rows, ($page - 1) * $this->perPage, $this->perPage),
+            count($rows),
+            $this->perPage,
+            $page,
+            ['path' => Paginator::resolveCurrentPath()],
+        );
     }
 
     public function type(): ReportType
@@ -83,8 +129,11 @@ class Index extends Component
     {
         $type = $this->type();
 
+        $result = $reports->build($type, $this->filters());
+
         return view('livewire.reports.index', [
-            'result' => $reports->build($type, $this->filters()),
+            'result' => $result,
+            'rows' => $this->paginateRows($result->rows),
             'type' => $type,
             'types' => ReportType::cases(),
             'projects' => Project::query()->orderBy('project_code')->pluck('project_code', 'id'),

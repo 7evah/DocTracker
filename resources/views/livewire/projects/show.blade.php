@@ -191,6 +191,8 @@
                 @endif
             </x-panel>
 
+            <flux:pagination :paginator="$tasks" class="mt-4" />
+
             @can('create', App\Models\Task::class)
                 <livewire:tasks.form :project-id="$project->id" :key="'task-form-proj-'.$project->id" />
             @endcan
@@ -277,6 +279,8 @@
                 @endif
             </x-panel>
 
+            <flux:pagination :paginator="$documents" class="mt-4" />
+
         @elseif ($tab === 'reviews')
             <x-panel :padded="false">
                 @if ($reviews->isEmpty())
@@ -341,6 +345,8 @@
                     </ul>
                 @endif
             </x-panel>
+
+            <flux:pagination :paginator="$reviews" class="mt-4" />
 
         @elseif ($tab === 'approvals')
             <x-panel :padded="false">
@@ -408,6 +414,8 @@
                 @endif
             </x-panel>
 
+            <flux:pagination :paginator="$approvals" class="mt-4" />
+
         @elseif ($tab === 'activity')
             <x-panel :padded="false">
                 @if ($activities->isEmpty())
@@ -431,6 +439,8 @@
                     </ol>
                 @endif
             </x-panel>
+
+            <flux:pagination :paginator="$activities" class="mt-4" />
         @endif
     </div>
 

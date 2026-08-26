@@ -18,6 +18,7 @@ use App\Models\Review;
 use App\Models\User;
 use Database\Seeders\DisciplineSeeder;
 use Database\Seeders\RolesAndPermissionsSeeder;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -448,6 +449,81 @@ class ProjectModuleTest extends TestCase
                 return $subjects->contains(Project::class.':'.$project->id)
                     && $subjects->contains(Document::class.':'.$document->id);
             });
+    }
+
+    /**
+     * A busy project accumulates activity without limit; the feed used to be
+     * capped at 50 rows with no way to reach anything older.
+     */
+    public function test_the_activity_tab_paginates_instead_of_capping(): void
+    {
+        [$project, $document] = $this->projectWithWorkflow('GGG-07', 'PI-7000');
+
+        // Comfortably more than one page of 25.
+        for ($i = 0; $i < 30; $i++) {
+            activity('document')
+                ->performedOn($document)
+                ->event('downloaded')
+                ->log('document.downloaded');
+        }
+
+        $component = Livewire::actingAs($this->userWithRole(UserRole::ProjectManager))
+            ->test(ProjectShow::class, ['project' => $project])
+            ->set('tab', 'activity');
+
+        $component->assertViewHas('activities', function ($activities) {
+            return $activities instanceof LengthAwarePaginator
+                && $activities->perPage() === 25
+                && $activities->count() === 25
+                && $activities->total() > 25;
+        });
+
+        // The overflow is reachable rather than silently dropped.
+        $component->set('paginators.page', 2)
+            ->assertViewHas('activities', fn ($activities) => $activities->count() > 0);
+    }
+
+    public function test_the_list_tabs_paginate(): void
+    {
+        [$project] = $this->projectWithWorkflow('HHH-08', 'PI-8000');
+
+        Document::factory()->count(20)->create([
+            'project_id' => $project->id,
+            'discipline_id' => Discipline::first()->id,
+            'created_by' => $this->userWithRole(UserRole::Engineer)->id,
+        ]);
+
+        Livewire::actingAs($this->userWithRole(UserRole::ProjectManager))
+            ->test(ProjectShow::class, ['project' => $project])
+            ->set('tab', 'documents')
+            ->assertViewHas('documents', function ($documents) {
+                return $documents instanceof LengthAwarePaginator
+                    && $documents->count() === 15
+                    && $documents->total() === 21;
+            });
+    }
+
+    /**
+     * All the tabs share one `page` query string, so a deep page on a long tab
+     * must not carry over to a short one and strand the user on a blank panel.
+     */
+    public function test_switching_tab_resets_the_page(): void
+    {
+        [$project] = $this->projectWithWorkflow('III-09', 'PI-9000');
+
+        Document::factory()->count(20)->create([
+            'project_id' => $project->id,
+            'discipline_id' => Discipline::first()->id,
+            'created_by' => $this->userWithRole(UserRole::Engineer)->id,
+        ]);
+
+        Livewire::actingAs($this->userWithRole(UserRole::ProjectManager))
+            ->test(ProjectShow::class, ['project' => $project])
+            ->set('tab', 'documents')
+            ->set('paginators.page', 2)
+            ->assertSet('paginators.page', 2)
+            ->set('tab', 'approvals')
+            ->assertSet('paginators.page', 1);
     }
 
     public function test_the_activity_tab_excludes_another_projects_documents(): void

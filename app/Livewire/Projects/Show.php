@@ -9,19 +9,39 @@ use App\Models\Document;
 use App\Models\Project;
 use App\Models\Review;
 use Flux\Flux;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection;
 use Illuminate\View\View;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithPagination;
 use Spatie\Activitylog\Models\Activity;
 
 class Show extends Component
 {
+    use WithPagination;
+
     public Project $project;
 
     #[Url(except: 'overview')]
     public string $tab = 'overview';
+
+    /** Rows per page for the list tabs. */
+    public int $perPage = 15;
+
+    /** Activity entries are one-liners, so more of them fit usefully. */
+    public int $activityPerPage = 25;
+
+    /*
+    | Only one tab renders at a time, so all five share the single `page`
+    | query string — but landing on page 4 of Documents and then opening
+    | Activité would otherwise ask for page 4 of a feed that may only have
+    | one. Reset whenever the tab changes.
+    */
+    public function updatedTab(): void
+    {
+        $this->resetPage();
+    }
 
     public function mount(Project $project): void
     {
@@ -88,17 +108,18 @@ class Show extends Component
     | rules change, so each row links out to the real page instead.
     */
 
-    /** @return Collection<int, Document> */
-    private function documents(): Collection
+    /** @return LengthAwarePaginator<int, Document> */
+    private function documents(): LengthAwarePaginator
     {
         return $this->project->documents()
             ->with(['discipline:id,code,name', 'creator:id,name,avatar_path'])
             ->orderByDesc('updated_at')
-            ->get();
+            ->paginate($this->perPage)
+            ->withQueryString();
     }
 
-    /** @return Collection<int, Review> */
-    private function reviews(): Collection
+    /** @return LengthAwarePaginator<int, Review> */
+    private function reviews(): LengthAwarePaginator
     {
         return Review::query()
             ->whereHas('documentVersion.document', $this->belongsToProject(...))
@@ -112,11 +133,12 @@ class Show extends Component
             ->orderByRaw('case when status in ("pending","in_progress") then 0 else 1 end')
             ->orderByRaw('deadline is null')
             ->orderBy('deadline')
-            ->get();
+            ->paginate($this->perPage)
+            ->withQueryString();
     }
 
-    /** @return Collection<int, Approval> */
-    private function approvals(): Collection
+    /** @return LengthAwarePaginator<int, Approval> */
+    private function approvals(): LengthAwarePaginator
     {
         return Approval::query()
             ->whereHas('documentVersion.document', $this->belongsToProject(...))
@@ -129,7 +151,8 @@ class Show extends Component
             ->orderByRaw('deadline is null')
             ->orderBy('deadline')
             ->orderBy('step')
-            ->get();
+            ->paginate($this->perPage)
+            ->withQueryString();
     }
 
     private function belongsToProject(Builder $query): void
@@ -145,9 +168,9 @@ class Show extends Component
      * opens this tab for is what has been happening *inside* the project, so
      * the documents' entries are merged in.
      *
-     * @return Collection<int, Activity>
+     * @return LengthAwarePaginator<int, Activity>
      */
-    private function activities(): Collection
+    private function activities(): LengthAwarePaginator
     {
         $documentIds = $this->project->documents()->pluck('id');
 
@@ -163,8 +186,8 @@ class Show extends Component
                         ->whereIn('subject_id', $documentIds));
             })
             ->latest()
-            ->limit(50)
-            ->get();
+            ->paginate($this->activityPerPage)
+            ->withQueryString();
     }
 
     public function render(): View
@@ -180,7 +203,8 @@ class Show extends Component
                     ->orderByRaw('case when status in ("open","in_progress") then 0 else 1 end')
                     ->orderByRaw('due_date is null')
                     ->orderBy('due_date')
-                    ->get()
+                    ->paginate($this->perPage)
+                    ->withQueryString()
                 : collect(),
         ])->title($this->project->name);
     }

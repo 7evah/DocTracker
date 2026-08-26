@@ -16,15 +16,32 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 
 class Show extends Component
 {
-    use WithFileUploads;
+    use WithFileUploads, WithPagination;
 
     public Document $document;
 
     #[Url(except: 'overview')]
     public string $tab = 'overview';
+
+    /** Rows per page for the tabs whose lists grow without bound. */
+    public int $perPage = 15;
+
+    /** Activity entries are one-liners, so more of them fit usefully. */
+    public int $activityPerPage = 25;
+
+    /*
+    | Only one tab renders at a time, so they share the single `page` query
+    | string; resetting on a tab change stops page 3 of the comments from
+    | being asked of a shorter list (§40).
+    */
+    public function updatedTab(): void
+    {
+        $this->resetPage();
+    }
 
     /** New-revision modal state. */
     public ?TemporaryUploadedFile $revisionFile = null;
@@ -211,29 +228,37 @@ class Show extends Component
                 ->with(['reviewer:id,name,avatar_path', 'documentVersion:id,revision'])
                 ->latest('reviews.id')
                 ->get(),
-            'comments' => ReviewComment::query()
-                ->whereIn('review_id', $this->document->reviews()->select('reviews.id'))
-                // 'author.roles' so <x-comment>'s role badge doesn't lazy-load
-                // per row (§40) — see User::primaryRole().
-                ->with(['author:id,name,avatar_path', 'author.roles', 'resolver:id,name'])
-                ->latest()
-                ->get(),
+            'comments' => $this->tab === 'comments'
+                ? ReviewComment::query()
+                    ->whereIn('review_id', $this->document->reviews()->select('reviews.id'))
+                    // 'author.roles' so <x-comment>'s role badge doesn't lazy-load
+                    // per row (§40) — see User::primaryRole().
+                    ->with(['author:id,name,avatar_path', 'author.roles', 'resolver:id,name'])
+                    ->latest()
+                    ->paginate($this->perPage)
+                    ->withQueryString()
+                : collect(),
             // Approvals for the current revision only — earlier revisions
             // keep their own chain, which the history tab covers (§22).
             'approvals' => $currentVersion
                 ? $currentVersion->approvals()->with('approver:id,name,avatar_path')->orderBy('step')->get()
                 : collect(),
-            'tasks' => $this->document->tasks()
-                ->with(['assignee:id,name,avatar_path', 'project:id,project_code'])
-                ->orderByRaw('case when status in ("open","in_progress") then 0 else 1 end')
-                ->orderByRaw('due_date is null')
-                ->orderBy('due_date')
-                ->get(),
-            'activities' => $this->document->activities()
-                ->with('causer:id,name,avatar_path')
-                ->latest()
-                ->limit(30)
-                ->get(),
+            'tasks' => $this->tab === 'tasks'
+                ? $this->document->tasks()
+                    ->with(['assignee:id,name,avatar_path', 'project:id,project_code'])
+                    ->orderByRaw('case when status in ("open","in_progress") then 0 else 1 end')
+                    ->orderByRaw('due_date is null')
+                    ->orderBy('due_date')
+                    ->paginate($this->perPage)
+                    ->withQueryString()
+                : collect(),
+            'activities' => $this->tab === 'activity'
+                ? $this->document->activities()
+                    ->with('causer:id,name,avatar_path')
+                    ->latest()
+                    ->paginate($this->activityPerPage)
+                    ->withQueryString()
+                : collect(),
             'storage' => app(DocumentStorage::class),
         ])->title($this->document->document_number);
     }

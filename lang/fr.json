@@ -25,5 +25,9 @@
     "Confirm": "Confirmer",
     "Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.": "Mot de passe oublié ? Indiquez votre adresse e-mail : nous vous enverrons un lien permettant d'en choisir un nouveau.",
     "Email Password Reset Link": "Envoyer le lien de réinitialisation",
-    "Reset Password": "Réinitialiser le mot de passe"
+    "Reset Password": "Réinitialiser le mot de passe",
+    "Showing": "Affichage de",
+    "to": "à",
+    "of": "sur",
+    "results": "résultats"
 }
