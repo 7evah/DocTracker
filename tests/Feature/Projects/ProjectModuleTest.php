@@ -459,7 +459,7 @@ class ProjectModuleTest extends TestCase
     {
         [$project, $document] = $this->projectWithWorkflow('GGG-07', 'PI-7000');
 
-        // Comfortably more than one page of 25.
+        // Comfortably more than one page, whatever the page size is tuned to.
         for ($i = 0; $i < 30; $i++) {
             activity('document')
                 ->performedOn($document)
@@ -471,11 +471,15 @@ class ProjectModuleTest extends TestCase
             ->test(ProjectShow::class, ['project' => $project])
             ->set('tab', 'activity');
 
-        $component->assertViewHas('activities', function ($activities) {
+        // Read the configured size rather than hard-coding it: the point is
+        // that the feed pages, not what the page size happens to be tuned to.
+        $size = $component->get('activityPerPage');
+
+        $component->assertViewHas('activities', function ($activities) use ($size) {
             return $activities instanceof LengthAwarePaginator
-                && $activities->perPage() === 25
-                && $activities->count() === 25
-                && $activities->total() > 25;
+                && $activities->perPage() === $size
+                && $activities->count() === $size
+                && $activities->total() > $size;
         });
 
         // The overflow is reachable rather than silently dropped.

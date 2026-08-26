@@ -540,6 +540,134 @@ class DocumentModuleTest extends TestCase
     |--------------------------------------------------------------------------
     */
 
+    /*
+    |--------------------------------------------------------------------------
+    | Status-appropriate actions (§13)
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * A revision request is answered with a corrected file, not by resending
+     * the rejected one. addRevision() already returns the document to Draft,
+     * which is the route back into review.
+     */
+    public function test_a_document_needing_revision_cannot_be_resubmitted_as_is(): void
+    {
+        $engineer = $this->userWithRole(UserRole::Engineer);
+        $document = $this->documentFor($engineer, DocumentStatus::NeedsRevision);
+
+        $this->assertFalse($document->canBeSubmittedForReview());
+
+        Livewire::actingAs($engineer)
+            ->test(DocumentShow::class, ['document' => $document])
+            ->call('submitForReview');
+
+        // Unchanged: the guard refused rather than moving it into review.
+        $this->assertSame(DocumentStatus::NeedsRevision, $document->fresh()->status);
+    }
+
+    public function test_uploading_a_revision_reopens_the_route_into_review(): void
+    {
+        $engineer = $this->userWithRole(UserRole::Engineer);
+        $document = $this->documentFor($engineer, DocumentStatus::NeedsRevision);
+
+        app(DocumentService::class)->addRevision($document, $this->pdf(), $engineer);
+
+        $this->assertTrue($document->fresh()->canBeSubmittedForReview());
+    }
+
+    /** Only a draft is submittable — every other status has its own next step. */
+    public function test_only_a_draft_is_submittable(): void
+    {
+        $engineer = $this->userWithRole(UserRole::Engineer);
+
+        $expected = [
+            DocumentStatus::Draft->value => true,
+            DocumentStatus::UnderReview->value => false,
+            DocumentStatus::NeedsRevision->value => false,
+            DocumentStatus::Approved->value => false,
+            DocumentStatus::Rejected->value => false,
+            DocumentStatus::Archived->value => false,
+        ];
+
+        foreach ($expected as $status => $submittable) {
+            $document = $this->documentFor($engineer, DocumentStatus::from($status), 'ME-'.crc32($status));
+
+            $this->assertSame(
+                $submittable,
+                $document->canBeSubmittedForReview(),
+                "Submittable mismatch for status {$status}",
+            );
+        }
+    }
+
+    /**
+     * The approval was granted for this content, so the metadata is frozen
+     * once approved or archived — including for administrators, which is why
+     * the rule sits on the model rather than the policy.
+     */
+    public function test_approved_and_archived_metadata_is_frozen(): void
+    {
+        $engineer = $this->userWithRole(UserRole::Engineer);
+
+        foreach ([DocumentStatus::Approved, DocumentStatus::Archived] as $i => $status) {
+            $document = $this->documentFor($engineer, $status, 'ME-200'.$i);
+
+            $this->assertFalse($document->acceptsMetadataEdit());
+
+            // Hiding the menu item is a courtesy; this is the rule (§39).
+            $this->actingAs($this->userWithRole(UserRole::Administrator))
+                ->get(route('documents.edit', $document))
+                ->assertForbidden();
+        }
+    }
+
+    public function test_an_open_document_can_still_be_edited(): void
+    {
+        $engineer = $this->userWithRole(UserRole::Engineer);
+        $document = $this->documentFor($engineer, DocumentStatus::NeedsRevision);
+
+        $this->assertTrue($document->acceptsMetadataEdit());
+
+        $this->actingAs($engineer)
+            ->get(route('documents.edit', $document))
+            ->assertOk();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Deletion (§13)
+    |--------------------------------------------------------------------------
+    */
+
+    /** There was previously no way to delete a document from the UI at all. */
+    public function test_a_manager_can_delete_a_document(): void
+    {
+        $engineer = $this->userWithRole(UserRole::Engineer);
+        $document = $this->documentFor($engineer, DocumentStatus::Approved);
+
+        Livewire::actingAs($this->userWithRole(UserRole::ProjectManager))
+            ->test(DocumentShow::class, ['document' => $document])
+            ->call('delete')
+            ->assertRedirect(route('documents.index'));
+
+        // Soft, so the revisions and signatures it carries stay recoverable.
+        $this->assertSoftDeleted($document);
+    }
+
+    public function test_an_engineer_cannot_delete_a_document(): void
+    {
+        $engineer = $this->userWithRole(UserRole::Engineer);
+        $document = $this->documentFor($engineer);
+
+        Livewire::actingAs($engineer)
+            ->test(DocumentShow::class, ['document' => $document])
+            ->call('delete')
+            ->assertForbidden();
+
+        $this->assertNotSoftDeleted($document);
+    }
+
     private function documentFor(
         User $author,
         DocumentStatus $status = DocumentStatus::Draft,

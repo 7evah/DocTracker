@@ -136,4 +136,43 @@ class Document extends Model
 
         return strtoupper(++$current);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Integrity rules
+    |--------------------------------------------------------------------------
+    |
+    | These sit on the model rather than the policy because administrators
+    | bypass every policy through Gate::before — a rule that must hold for
+    | everyone cannot live somewhere admins skip (§39). Same reasoning as
+    | Project::canBeDeleted().
+    */
+
+    /**
+     * Whether the document may be sent into review right now.
+     *
+     * Draft only, and deliberately not "révision requise": uploading a new
+     * revision already returns the document to Draft (see
+     * DocumentService::addRevision), so allowing a submit straight from
+     * "révision requise" would let the author bounce the very file the
+     * reviewer just rejected back at them without changing anything.
+     */
+    public function canBeSubmittedForReview(): bool
+    {
+        return $this->status === DocumentStatus::Draft;
+    }
+
+    /**
+     * Whether the metadata (title, description, discipline…) may still be
+     * edited.
+     *
+     * Not once approved or archived: the approval was granted for this
+     * content, and editing it afterwards would silently change what was
+     * signed off. Both states have a documented way back — upload a new
+     * revision, or unarchive — so this closes no door permanently.
+     */
+    public function acceptsMetadataEdit(): bool
+    {
+        return ! $this->status->isTerminal();
+    }
 }

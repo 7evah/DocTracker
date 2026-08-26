@@ -33,11 +33,20 @@ new #[Layout('components.layouts.auth')] class extends Component
     @endif
 
     <form wire:submit="login" class="flex flex-col gap-5">
+        {{--
+            error:name is not redundant with wire:model here. Flux derives the
+            field it shows errors for from wire:model — but only as a default,
+            and the explicit name="email" (which password managers and browser
+            autofill rely on) overrides it. Livewire registers the failure under
+            "form.email" while Flux would look under "email", so a wrong
+            password produced no message at all: the form simply sat there.
+        --}}
         <flux:input
             wire:model="form.email"
             :label="__('auth.login.email')"
             type="email"
             name="email"
+            error:name="form.email"
             required
             autofocus
             autocomplete="username"

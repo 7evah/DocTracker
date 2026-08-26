@@ -141,7 +141,7 @@ class Show extends Component
         $this->authorize('submitForReview', $this->document);
 
         // Status rule enforced server-side, not just by hiding the button (§39).
-        if (! in_array($this->document->status, [DocumentStatus::Draft, DocumentStatus::NeedsRevision], true)) {
+        if (! $this->document->canBeSubmittedForReview()) {
             Flux::toast(text: __('documents.messages.submit_blocked'), variant: 'danger');
 
             return;
@@ -191,6 +191,24 @@ class Show extends Component
             text: __('documents.messages.revision_added', ['revision' => $version->revision]),
             variant: 'success',
         );
+    }
+
+    /**
+     * Soft-delete the document.
+     *
+     * Soft, so the revisions, reviews and signatures it carries are recoverable
+     * rather than destroyed — the stored files are left on disk untouched (§34).
+     * There was previously no way to delete a document from anywhere in the UI,
+     * for any role, despite the policy and permission both existing.
+     */
+    public function delete(): void
+    {
+        $this->authorize('delete', $this->document);
+
+        $this->document->delete();
+
+        session()->flash('toast', __('documents.messages.deleted'));
+        $this->redirectRoute('documents.index', navigate: true);
     }
 
     public function archive(DocumentService $documents): void

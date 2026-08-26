@@ -72,20 +72,27 @@
             @endcan
 
             @can('submitForReview', $document)
-                @if (in_array($document->status, [App\Enums\DocumentStatus::Draft, App\Enums\DocumentStatus::NeedsRevision], true))
+                @if ($document->canBeSubmittedForReview())
                     <flux:button wire:click="submitForReview" icon="paper-airplane" variant="primary">
                         {{ __('documents.actions.submit_review') }}
                     </flux:button>
                 @endif
             @endcan
 
-            @canany(['update', 'archive'], $document)
+            @canany(['update', 'archive', 'delete'], $document)
                 <flux:dropdown position="bottom" align="end">
                     <flux:button icon="ellipsis-horizontal" variant="ghost" :aria-label="__('common.actions.view')" />
 
                     <flux:menu>
                         @can('update', $document)
-                            <flux:menu.item icon="pencil-square" :href="route('documents.edit', $document)" wire:navigate>
+                            {{-- Disabled with a reason rather than hidden, so the
+                                 rule is discoverable rather than mysterious (§37). --}}
+                            <flux:menu.item
+                                icon="pencil-square"
+                                :href="$document->acceptsMetadataEdit() ? route('documents.edit', $document) : null"
+                                :disabled="! $document->acceptsMetadataEdit()"
+                                wire:navigate
+                            >
                                 {{ __('common.actions.edit') }}
                             </flux:menu.item>
                         @endcan
@@ -98,6 +105,19 @@
                                 {{ $document->status === App\Enums\DocumentStatus::Archived
                                     ? __('documents.actions.unarchive')
                                     : __('documents.actions.archive') }}
+                            </flux:menu.item>
+                        @endcan
+
+                        @can('delete', $document)
+                            <flux:menu.separator />
+
+                            <flux:menu.item
+                                icon="trash"
+                                variant="danger"
+                                wire:click="delete"
+                                wire:confirm="{{ __('documents.messages.delete_confirm') }} {{ __('common.confirm.irreversible') }}"
+                            >
+                                {{ __('common.actions.delete') }}
                             </flux:menu.item>
                         @endcan
                     </flux:menu>

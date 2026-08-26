@@ -30,6 +30,10 @@ class Edit extends Component
     {
         $this->authorize('update', $document);
 
+        // An approved or archived document's metadata is what was signed off;
+        // the disabled menu item is a courtesy, this is the rule (§39).
+        abort_unless($document->acceptsMetadataEdit(), 403);
+
         $this->document = $document;
         $this->discipline_id = (string) $document->discipline_id;
         $this->document_number = $document->document_number;
@@ -76,6 +80,8 @@ class Edit extends Component
     public function save(): void
     {
         $this->authorize('update', $this->document);
+
+        abort_unless($this->document->acceptsMetadataEdit(), 403);
 
         $validated = $this->validate();
         $validated['document_number'] = strtoupper($validated['document_number']);

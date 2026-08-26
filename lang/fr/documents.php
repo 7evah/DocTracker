@@ -94,9 +94,10 @@ return [
         'archived' => 'Document archivé.',
         'unarchived' => 'Document désarchivé.',
         'deleted' => 'Document supprimé.',
+        'delete_confirm' => 'Supprimer ce document, ses révisions et son historique de revues ?',
         'upload_failed' => 'Impossible de téléverser le document. Vérifiez le format et la taille du fichier.',
         'revision_blocked' => 'Une nouvelle révision ne peut pas être ajoutée tant que le document est en revue.',
-        'submit_blocked' => 'Seul un document en brouillon ou nécessitant une révision peut être soumis.',
+        'submit_blocked' => 'Seul un document en brouillon peut être soumis. Téléversez d’abord une nouvelle révision.',
         'file_missing' => 'Le fichier de cette révision est introuvable sur le serveur.',
     ],
 

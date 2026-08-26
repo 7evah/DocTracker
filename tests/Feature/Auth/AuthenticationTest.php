@@ -52,6 +52,16 @@ class AuthenticationTest extends TestCase
             ->assertHasErrors()
             ->assertNoRedirect();
 
+        /*
+        | Rendered, not merely registered. assertHasErrors() alone passed for
+        | a long time while the page showed the user nothing at all: Flux
+        | derives the field it reports errors for from wire:model, but the
+        | explicit name="email" on the input overrode that, so it looked for
+        | "email" while Livewire had recorded the failure under "form.email".
+        | A wrong password simply sat there silently.
+        */
+        $component->assertSee(trans('auth.failed'));
+
         $this->assertGuest();
     }
 
