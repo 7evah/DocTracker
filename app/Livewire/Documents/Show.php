@@ -31,7 +31,7 @@ class Show extends Component
     public int $perPage = 15;
 
     /** Activity entries are one-liners, so more of them fit usefully. */
-    public int $activityPerPage = 25;
+    public int $activityPerPage = 15;
 
     /*
     | Only one tab renders at a time, so they share the single `page` query
