@@ -107,6 +107,17 @@ Two things that will otherwise bite:
   `http://localhost` while you serve on port 8000, every button in every
   notification 404s. Set it to the address people actually use.
 
+- **`MAIL_FROM_ADDRESS` has to be an address the provider has verified.** This
+  one is nasty because it does not look like an error: the provider accepts
+  the message at SMTP time, so the app reports success and the queue job
+  passes, and then it is dropped before delivery. Nothing arrives, anywhere,
+  with no bounce. If sending "works" but nothing lands, check the sender is
+  confirmed (Brevo: Senders, Domains & Dedicated IPs → Senders) and read
+  Transactional → Logs, which shows each message as delivered or blocked.
+- **Disposable inboxes may be refused outright.** Providers commonly block
+  domains like yopmail.com to protect their sending reputation, so a demo
+  account on one can be undeliverable even when everything is configured
+  correctly.
 - **Restart the worker after changing code.** `queue:work` is a long-running
   process holding the classes it loaded at boot, so editing a notification or
   a model leaves the running worker using the old copy. It surfaces as a job
