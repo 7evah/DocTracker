@@ -20,6 +20,7 @@ class Review extends Model
         'assigned_by',
         'status',
         'priority',
+        'carry_forward',
         'assigned_at',
         'deadline',
         'reviewed_at',
@@ -31,6 +32,7 @@ class Review extends Model
         return [
             'status' => ReviewStatus::class,
             'priority' => Priority::class,
+            'carry_forward' => 'boolean',
             'assigned_at' => 'datetime',
             'deadline' => 'datetime',
             'reviewed_at' => 'datetime',

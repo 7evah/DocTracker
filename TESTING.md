@@ -116,21 +116,25 @@ Log out, log in as **ingenieur1@docflow.test**.
 - [ ] You land on the document page, status **Brouillon**. Download the
   file you just uploaded — confirm the original filename comes back
   correctly.
-- [ ] Click **Soumettre pour revue**. Status changes to *En revue*.
-  > **Known behaviour to note, not a bug to chase:** this button only
-  > flips the status flag — it does not assign anyone or send a
-  > notification. The step that actually puts the document in front of a
-  > reviewer is the Project Manager's **Affecter pour revue** action next.
-  > An engineer submitting alone is a "this is ready" signal with nothing
-  > downstream reacting to it yet.
+- [ ] Click **Soumettre pour revue**. Status changes to *En revue*, and
+  the **project manager** gets a notification saying the revision is
+  waiting for a reviewer to be assigned. Submitting no longer happens
+  silently — check chef.projet's bell after this step.
+  > Assigning the reviewer is still a separate act, done by the Project
+  > Manager in section 4. What submitting does is tell them there is
+  > something to assign.
 
 ## 4. Project Manager — assign a reviewer
 
 Log back in as **chef.projet@docflow.test**, open `PI-1023`.
 
+- [ ] Bell shows the submission notification from section 3. Open the
+  document from it.
 - [ ] Click **Affecter pour revue**. Tick **Karim Oulhaj**, priority
-  *Haute*, confirm the deadline auto-fills, save. Status is (or remains)
-  *En revue*; the **Revues** tab now lists one entry against Karim.
+  *Haute*, confirm the deadline auto-fills. Leave **Portée de
+  l'affectation** on *Cette révision uniquement* for now, then save.
+  Status is (or remains) *En revue*; the **Revues** tab now lists one
+  entry against Karim.
 - [ ] Check the header bell — no badge yet (you didn't assign yourself).
 
 ## 5. Reviewer — review, comment, request a revision
@@ -156,8 +160,24 @@ Log back in as **ingenieur1@docflow.test**, open `PI-1023`.
   révision**, upload a second file, add version notes referencing the
   comment. Confirm revision **B** appears, A is untouched and still
   downloadable, and the document status returned to **Brouillon**.
-- [ ] Submit for review again (as in step 3) — or wait, since the PM needs
-  to reassign anyway.
+- [ ] Submit for review again (as in step 3). Because Karim was assigned
+  for *this revision only*, revision B goes in with **no reviewer**, and
+  chef.projet gets the "waiting for a reviewer" notification again.
+
+### The standing-reviewer alternative
+
+That repetition is what **Portée de l'affectation** exists to avoid. Try
+it once so you have seen both halves:
+
+- [ ] As **chef.projet**, assign Karim to revision B, this time choosing
+  *Toutes les révisions à venir*.
+- [ ] As **ingenieur1**, upload a revision C and submit it.
+- [ ] Karim is assigned to revision C automatically — check his `/reviews`
+  queue without anyone having picked him again. chef.projet's
+  notification this time says the usual reviewers were kept, rather than
+  asking for an assignment.
+- [ ] Assigning somebody else explicitly to a revision still wins: an
+  explicit choice is never overwritten by the standing one.
 
 ## 7. Project Manager → Reviewer — approve the review
 

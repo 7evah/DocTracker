@@ -15,6 +15,7 @@ use App\Models\Document;
 use App\Models\Project;
 use App\Models\Review;
 use App\Models\User;
+use App\Notifications\DocumentSubmittedForReview;
 use App\Notifications\ReviewAssigned;
 use App\Notifications\ReviewCompleted;
 use App\Services\DocumentService;
@@ -65,6 +66,194 @@ class ReviewModuleTest extends TestCase
             file: UploadedFile::fake()->create('plan.pdf', 100, 'application/pdf'),
             author: $author,
         );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Submitting a revision (§23, §26)
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Submitting used to be silent: the status changed and nobody was told, so
+     * a revision could sit in review with no reviewer for as long as it took
+     * somebody to notice by chance.
+     */
+    public function test_submitting_a_revision_notifies_the_project_manager(): void
+    {
+        Notification::fake();
+
+        $engineer = $this->userWithRole(UserRole::Engineer);
+        $manager = $this->userWithRole(UserRole::ProjectManager);
+
+        $document = $this->documentFor($engineer);
+        $document->project->forceFill(['manager_id' => $manager->id])->save();
+
+        app(DocumentService::class)->submitForReview($document->fresh(), $engineer);
+
+        Notification::assertSentTo(
+            $manager,
+            DocumentSubmittedForReview::class,
+            fn (DocumentSubmittedForReview $n) => $n->reviewersCarriedForward === false,
+        );
+    }
+
+    /** Nobody is told about their own action, as elsewhere in the app. */
+    public function test_a_manager_submitting_their_own_document_is_not_notified(): void
+    {
+        Notification::fake();
+
+        $manager = $this->userWithRole(UserRole::ProjectManager);
+
+        $document = $this->documentFor($manager);
+        $document->project->forceFill(['manager_id' => $manager->id])->save();
+
+        app(DocumentService::class)->submitForReview($document->fresh(), $manager);
+
+        Notification::assertNotSentTo($manager, DocumentSubmittedForReview::class);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Standing reviewers (§23)
+    |--------------------------------------------------------------------------
+    */
+
+    public function test_a_standing_reviewer_is_reassigned_to_the_next_revision(): void
+    {
+        $engineer = $this->userWithRole(UserRole::Engineer);
+        $manager = $this->userWithRole(UserRole::ProjectManager);
+        $reviewer = $this->userWithRole(UserRole::Reviewer);
+
+        $document = $this->documentFor($engineer);
+        $document->project->forceFill(['manager_id' => $manager->id])->save();
+
+        Livewire::actingAs($manager)
+            ->test(AssignReviewers::class, ['document' => $document])
+            ->set('reviewers', [(string) $reviewer->id])
+            ->set('scope', 'document')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        app(DocumentService::class)->addRevision(
+            $document->fresh(),
+            UploadedFile::fake()->create('rev-b.pdf', 100, 'application/pdf'),
+            $engineer,
+        );
+
+        $document->refresh();
+        app(DocumentService::class)->submitForReview($document, $engineer);
+
+        $revisionB = $document->fresh()->latestVersion;
+
+        $this->assertSame('B', $revisionB->revision);
+        $this->assertTrue(
+            $revisionB->reviews()->where('reviewer_id', $reviewer->id)->exists(),
+            'The standing reviewer should have been re-assigned to revision B.',
+        );
+    }
+
+    /** The default is one revision only, so nothing is inherited silently. */
+    public function test_a_single_revision_reviewer_is_not_carried_forward(): void
+    {
+        $engineer = $this->userWithRole(UserRole::Engineer);
+        $manager = $this->userWithRole(UserRole::ProjectManager);
+        $reviewer = $this->userWithRole(UserRole::Reviewer);
+
+        $document = $this->documentFor($engineer);
+        $document->project->forceFill(['manager_id' => $manager->id])->save();
+
+        Livewire::actingAs($manager)
+            ->test(AssignReviewers::class, ['document' => $document])
+            ->set('reviewers', [(string) $reviewer->id])
+            ->set('scope', 'version')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        app(DocumentService::class)->addRevision(
+            $document->fresh(),
+            UploadedFile::fake()->create('rev-b.pdf', 100, 'application/pdf'),
+            $engineer,
+        );
+
+        $document->refresh();
+        app(DocumentService::class)->submitForReview($document, $engineer);
+
+        $this->assertSame(0, $document->fresh()->latestVersion->reviews()->count());
+    }
+
+    /** Which of the two happened decides whether the manager must act, so say so. */
+    public function test_the_manager_is_told_when_standing_reviewers_were_kept(): void
+    {
+        $engineer = $this->userWithRole(UserRole::Engineer);
+        $manager = $this->userWithRole(UserRole::ProjectManager);
+        $reviewer = $this->userWithRole(UserRole::Reviewer);
+
+        $document = $this->documentFor($engineer);
+        $document->project->forceFill(['manager_id' => $manager->id])->save();
+
+        app(ReviewService::class)->assign(
+            version: $document->latestVersion,
+            reviewers: [$reviewer],
+            assigner: $manager,
+            carryForward: true,
+        );
+
+        app(DocumentService::class)->addRevision(
+            $document->fresh(),
+            UploadedFile::fake()->create('rev-b.pdf', 100, 'application/pdf'),
+            $engineer,
+        );
+
+        Notification::fake();
+
+        $document->refresh();
+        app(DocumentService::class)->submitForReview($document, $engineer);
+
+        Notification::assertSentTo(
+            $manager,
+            DocumentSubmittedForReview::class,
+            fn (DocumentSubmittedForReview $n) => $n->reviewersCarriedForward === true,
+        );
+    }
+
+    /** An explicit choice for this revision is never overwritten by an inherited one. */
+    public function test_carry_forward_does_not_override_an_explicit_assignment(): void
+    {
+        $engineer = $this->userWithRole(UserRole::Engineer);
+        $manager = $this->userWithRole(UserRole::ProjectManager);
+        $standing = $this->userWithRole(UserRole::Reviewer, 'Permanent');
+        $chosen = $this->userWithRole(UserRole::Reviewer, 'Ponctuel');
+
+        $document = $this->documentFor($engineer);
+        $document->project->forceFill(['manager_id' => $manager->id])->save();
+
+        app(ReviewService::class)->assign(
+            version: $document->latestVersion,
+            reviewers: [$standing],
+            assigner: $manager,
+            carryForward: true,
+        );
+
+        app(DocumentService::class)->addRevision(
+            $document->fresh(),
+            UploadedFile::fake()->create('rev-b.pdf', 100, 'application/pdf'),
+            $engineer,
+        );
+
+        $document->refresh();
+        $revisionB = $document->latestVersion;
+
+        // The manager picks somebody else for this one revision before submit.
+        app(ReviewService::class)->assign(
+            version: $revisionB,
+            reviewers: [$chosen],
+            assigner: $manager,
+        );
+
+        app(DocumentService::class)->submitForReview($document->fresh(), $engineer);
+
+        $this->assertSame([$chosen->id], $revisionB->reviews()->pluck('reviewer_id')->all());
     }
 
     /*

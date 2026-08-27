@@ -64,6 +64,7 @@ return [
     ],
 
     'actions' => [
+        'open' => 'Ouvrir le document',
         'download' => 'Télécharger',
         'download_revision' => 'Télécharger la révision :revision',
         'upload_revision' => 'Nouvelle révision',

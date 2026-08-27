@@ -32,6 +32,12 @@ class AssignReviewers extends Component
 
     public string $deadline = '';
 
+    /**
+     * 'version' — these reviewers check this revision and no other.
+     * 'document' — they stay the reviewers for every revision that follows.
+     */
+    public string $scope = 'version';
+
     public function mount(Document $document): void
     {
         $this->document = $document;
@@ -39,10 +45,17 @@ class AssignReviewers extends Component
 
         // Pre-tick whoever is already assigned, so the modal doubles as
         // "change reviewers" rather than only "add".
-        $this->reviewers = $this->currentReviews()
+        $current = $this->currentReviews();
+
+        $this->reviewers = $current
             ->pluck('reviewer_id')
             ->map(fn ($id) => (string) $id)
             ->all();
+
+        // Re-opening the modal shows the choice that is actually in force.
+        $this->scope = $current->contains(fn (Review $review) => $review->carry_forward)
+            ? 'document'
+            : 'version';
     }
 
     /** Deadline follows the priority unless the user has typed their own. */
@@ -76,10 +89,12 @@ class AssignReviewers extends Component
             'reviewers.*' => [Rule::exists('users', 'id')],
             'priority' => ['required', Rule::enum(Priority::class)],
             'deadline' => ['nullable', 'date', 'after_or_equal:today'],
+            'scope' => ['required', Rule::in(['version', 'document'])],
         ], attributes: [
             'reviewers' => __('reviews.assign.reviewers'),
             'priority' => __('reviews.fields.priority'),
             'deadline' => __('reviews.fields.deadline'),
+            'scope' => __('reviews.assign.scope'),
         ]);
 
         $version = $this->document->latestVersion;
@@ -107,6 +122,7 @@ class AssignReviewers extends Component
             assigner: auth()->user(),
             priority: Priority::from($validated['priority']),
             deadline: $validated['deadline'] ? Carbon::parse($validated['deadline']) : null,
+            carryForward: $validated['scope'] === 'document',
         );
 
         $this->modal('assign-reviewers')->close();

@@ -6,6 +6,7 @@ use App\Enums\DocumentStatus;
 use App\Models\Document;
 use App\Models\DocumentVersion;
 use App\Models\User;
+use App\Notifications\DocumentSubmittedForReview;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -19,7 +20,10 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
  */
 class DocumentService
 {
-    public function __construct(private readonly DocumentStorage $storage) {}
+    public function __construct(
+        private readonly DocumentStorage $storage,
+        private readonly ReviewService $reviews,
+    ) {}
 
     /**
      * Create a document together with its first revision.
@@ -106,6 +110,30 @@ class DocumentService
             ->event('submitted')
             ->withProperties(['revision' => $document->current_revision])
             ->log('document.submitted');
+
+        $version = $document->latestVersion()->first();
+
+        if (! $version) {
+            return;
+        }
+
+        // Reviewers the manager marked as covering the whole document are
+        // re-assigned here, so revision B onwards does not sit idle waiting
+        // for the same choice to be made again.
+        $carried = $this->reviews->carryForwardTo($version, $actor);
+
+        /*
+        | Tell the project manager either way: they are the one who assigns
+        | reviewers, and before this a submitted revision was completely
+        | silent — the author pressed the button and nobody heard about it.
+        | Skipped when the manager is the submitter, matching how the rest of
+        | the app declines to notify someone of their own action.
+        */
+        $manager = $document->project?->manager;
+
+        if ($manager && $manager->isNot($actor)) {
+            $manager->notify(new DocumentSubmittedForReview($version, $carried->isNotEmpty()));
+        }
     }
 
     public function archive(Document $document, User $actor): void

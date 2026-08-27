@@ -59,6 +59,19 @@
                     />
                 </div>
 
+                {{-- On a document that will run to revision C or D, picking the
+                     same reviewer each time is the same decision repeated. This
+                     records it once: a standing reviewer is re-assigned
+                     automatically when a later revision is submitted (§23). --}}
+                <flux:select
+                    wire:model="scope"
+                    :label="__('reviews.assign.scope')"
+                    :description="__('reviews.assign.scope_hint')"
+                >
+                    <flux:select.option value="version">{{ __('reviews.assign.scope_version') }}</flux:select.option>
+                    <flux:select.option value="document">{{ __('reviews.assign.scope_document') }}</flux:select.option>
+                </flux:select>
+
                 <div class="flex justify-end gap-2">
                     <flux:modal.close>
                         <flux:button variant="ghost" type="button">{{ __('common.actions.cancel') }}</flux:button>

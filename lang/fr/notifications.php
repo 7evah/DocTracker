@@ -43,6 +43,9 @@ return [
 
     'task_assigned' => 'Une tâche vous a été affectée : :title',
 
+    'document_submitted_needs_reviewer' => 'La révision :revision de :number a été soumise pour revue et attend l’affectation d’un vérificateur.',
+    'document_submitted_reviewers_kept' => 'La révision :revision de :number a été soumise pour revue ; les vérificateurs habituels ont été affectés automatiquement.',
+
     'approval_requested' => 'Votre approbation est requise sur :number (révision :revision).',
     'document_approved' => 'La révision :revision de :number a été approuvée.',
     'document_rejected' => 'La révision :revision de :number a été rejetée.',
@@ -56,6 +59,7 @@ return [
         'task_assigned_subject' => 'DocFlow — une tâche vous a été affectée',
         'approval_requested_subject' => 'DocFlow — :number à approuver',
         'document_decided_subject' => 'DocFlow — décision finale sur :number',
+        'document_submitted_subject' => 'DocFlow — :number (révision :revision) soumis pour revue',
     ],
 
 ];

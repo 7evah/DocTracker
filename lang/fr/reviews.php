@@ -23,6 +23,10 @@ return [
     ],
 
     'assign' => [
+        'scope' => 'Portée de l’affectation',
+        'scope_hint' => 'Un vérificateur permanent est réaffecté automatiquement aux révisions suivantes.',
+        'scope_version' => 'Cette révision uniquement',
+        'scope_document' => 'Toutes les révisions à venir',
         'title' => 'Affecter pour revue',
         'heading' => 'Affecter des vérificateurs',
         'intro' => 'Les vérificateurs sélectionnés seront notifiés et le document passera en revue.',

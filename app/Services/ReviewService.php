@@ -40,10 +40,11 @@ class ReviewService
         User $assigner,
         Priority $priority = Priority::Medium,
         ?Carbon $deadline = null,
+        bool $carryForward = false,
     ): Collection {
         $deadline ??= now()->addDays($priority->defaultTurnaroundDays());
 
-        return DB::transaction(function () use ($version, $reviewers, $assigner, $priority, $deadline) {
+        return DB::transaction(function () use ($version, $reviewers, $assigner, $priority, $deadline, $carryForward) {
             $created = collect();
 
             foreach ($reviewers as $reviewer) {
@@ -59,6 +60,7 @@ class ReviewService
                         'assigned_by' => $assigner->id,
                         'status' => ReviewStatus::Pending,
                         'priority' => $priority,
+                        'carry_forward' => $carryForward,
                         'assigned_at' => now(),
                         'deadline' => $deadline,
                     ],
@@ -85,6 +87,61 @@ class ReviewService
 
             return $created;
         });
+    }
+
+    /**
+     * Re-assign the standing reviewers of the previous revision to this one.
+     *
+     * A manager who marked an assignment as covering the whole document
+     * should not have to pick the same people again for revision B, C and D.
+     * Only the most recent earlier revision is consulted: if the manager
+     * later assigns someone for one revision only, that decision replaces the
+     * standing one rather than accumulating alongside it.
+     *
+     * Does nothing when the revision already has reviewers, so an explicit
+     * assignment is never overwritten by an inherited one.
+     *
+     * @return Collection<int, Review>
+     */
+    public function carryForwardTo(DocumentVersion $version, User $actor): Collection
+    {
+        if ($version->reviews()->exists()) {
+            return collect();
+        }
+
+        $previous = DocumentVersion::query()
+            ->where('document_id', $version->document_id)
+            ->whereKeyNot($version->id)
+            ->where('id', '<', $version->id)
+            ->orderByDesc('id')
+            ->first();
+
+        if (! $previous) {
+            return collect();
+        }
+
+        $standing = $previous->reviews()
+            ->where('carry_forward', true)
+            ->with('reviewer')
+            ->get();
+
+        if ($standing->isEmpty()) {
+            return collect();
+        }
+
+        // Deliberately not $review->reviewer->isNot($author): a standing
+        // reviewer stays the reviewer. candidates() already keeps an author
+        // from being picked in the first place.
+        $first = $standing->first();
+
+        return $this->assign(
+            version: $version,
+            reviewers: $standing->pluck('reviewer')->filter(),
+            assigner: $actor,
+            priority: $first->priority,
+            deadline: null,
+            carryForward: true,
+        );
     }
 
     /** Mark a review as actively in progress when the reviewer opens it. */
