@@ -60,6 +60,8 @@ return [
         'approval_requested_subject' => 'DocFlow — :number à approuver',
         'document_decided_subject' => 'DocFlow — décision finale sur :number',
         'document_submitted_subject' => 'DocFlow — :number (révision :revision) soumis pour revue',
+        'temporary_password_subject' => 'DocFlow — votre mot de passe temporaire',
+        'footer' => '© :year JESA DocFlow — prototype interne. Message automatique, merci de ne pas y répondre.',
     ],
 
 ];

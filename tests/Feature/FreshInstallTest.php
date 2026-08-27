@@ -84,7 +84,7 @@ class FreshInstallTest extends TestCase
 
     public function test_every_index_page_renders_empty_for_an_administrator(): void
     {
-        $admin = User::where('email', 'admin@docflow.test')->firstOrFail();
+        $admin = User::where('email', 'adminjesa@yopmail.com')->firstOrFail();
 
         $routes = [
             'projects.index', 'documents.index', 'reviews.index', 'approvals.index',

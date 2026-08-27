@@ -16,8 +16,6 @@ Route::middleware('guest')->group(function () {
     Volt::route('forgot-password', 'pages.auth.forgot-password')
         ->name('password.request');
 
-    Volt::route('reset-password/{token}', 'pages.auth.reset-password')
-        ->name('password.reset');
 });
 
 Route::middleware('auth')->group(function () {
@@ -30,4 +28,9 @@ Route::middleware('auth')->group(function () {
 
     Volt::route('confirm-password', 'pages.auth.confirm-password')
         ->name('password.confirm');
+
+    // Where EnsurePasswordIsChanged parks an account that signed in with a
+    // mailed temporary password, until it chooses a real one (§4).
+    Volt::route('change-password', 'pages.auth.change-password')
+        ->name('password.change');
 });

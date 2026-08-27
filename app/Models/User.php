@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\Permission\Traits\HasRoles;
@@ -39,6 +40,7 @@ class User extends Authenticatable
     /** @var list<string> */
     protected $hidden = [
         'password',
+        'temporary_password',
         'remember_token',
     ];
 
@@ -49,8 +51,73 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'last_active_at' => 'datetime',
             'password' => 'hashed',
+            'temporary_password' => 'hashed',
+            'temporary_password_expires_at' => 'datetime',
+            'must_change_password' => 'boolean',
             'status' => UserStatus::class,
         ];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Temporary passwords (§4)
+    |--------------------------------------------------------------------------
+    |
+    | The forgot-password flow mails a one-off password instead of a reset
+    | link. It is kept beside the real password, never in place of it, so
+    | requesting a reset for somebody else's address cannot lock them out of
+    | an account they can still sign into.
+    */
+
+    /** How long a mailed password stays usable. */
+    public const TEMPORARY_PASSWORD_TTL_MINUTES = 60;
+
+    /**
+     * Issue a fresh temporary password and return the plain text.
+     *
+     * The plain text is returned rather than stored: it exists only long
+     * enough to be put in the e-mail, and the column holds the hash.
+     */
+    public function issueTemporaryPassword(): string
+    {
+        // Unambiguous alphabet: no O/0 or I/l/1, because this is a string
+        // somebody reads out of an e-mail and types by hand.
+        $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+        $plain = '';
+
+        for ($i = 0; $i < 12; $i++) {
+            $plain .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+        }
+
+        $this->forceFill([
+            'temporary_password' => $plain,
+            'temporary_password_expires_at' => now()->addMinutes(self::TEMPORARY_PASSWORD_TTL_MINUTES),
+        ])->save();
+
+        return $plain;
+    }
+
+    /** True when $plain is this user's live, unexpired temporary password. */
+    public function matchesTemporaryPassword(string $plain): bool
+    {
+        if (blank($this->temporary_password) || $this->temporary_password_expires_at === null) {
+            return false;
+        }
+
+        if ($this->temporary_password_expires_at->isPast()) {
+            return false;
+        }
+
+        return Hash::check($plain, $this->temporary_password);
+    }
+
+    /** Drop the temporary password, whether it was used or replaced. */
+    public function clearTemporaryPassword(): void
+    {
+        $this->forceFill([
+            'temporary_password' => null,
+            'temporary_password_expires_at' => null,
+        ])->save();
     }
 
     /*

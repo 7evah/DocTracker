@@ -77,6 +77,55 @@ If the UI feels unresponsive:
   `DEBUGBAR_ENABLED=false` in `.env` took a request from ~210 ms to ~93 ms
   here, more than doubling how many clicks the server absorbs per second.
 
+## Sending real e-mail
+
+Notifications (review assignments, approval requests, submissions) and the
+forgot-password flow both go out by e-mail. Out of the box `MAIL_MAILER=log`
+writes them to `storage/logs/laravel.log` instead of sending, which is fine
+for development and sends nothing to anyone by accident.
+
+To deliver for real, fill in any SMTP provider's credentials — nothing in the
+app is provider-specific, so Brevo, Mailgun, Postmark, SendGrid, Gmail or a
+corporate relay all work the same way:
+
+```dotenv
+MAIL_MAILER=smtp
+MAIL_HOST=smtp-relay.brevo.com   # or your provider's host
+MAIL_PORT=587
+MAIL_USERNAME=<from your provider>
+MAIL_PASSWORD=<from your provider>
+MAIL_FROM_ADDRESS="docflow@jesa.ma"
+MAIL_FROM_NAME="JESA DocFlow"
+```
+
+Two things that will otherwise bite:
+
+- **Mail is queued.** Nothing sends until a worker runs — `php artisan
+  queue:work` (or `composer dev`, which starts one). A message that never
+  arrives is usually a queue that is not running, not a mail problem.
+- **`APP_URL` becomes every link in every e-mail.** If it says
+  `http://localhost` while you serve on port 8000, every button in every
+  notification 404s. Set it to the address people actually use.
+
+Check delivery without involving a colleague:
+
+```bash
+php artisan tinker --execute="App\Models\User::first()->notify(new App\Notifications\TemporaryPasswordIssued('TEST1234'));"
+php artisan queue:work --stop-when-empty
+```
+
+The demo accounts use `@yopmail.com`, a throwaway inbox with no signup: open
+<https://yopmail.com>, type the address, and read what arrived.
+
+### Forgot password
+
+The flow mails a **temporary password** rather than a reset link. It lasts an
+hour, works once, and is stored *beside* the account's real password rather
+than replacing it — so submitting somebody else's address on the form cannot
+lock them out of an account they can still sign into. Signing in with it puts
+the account on a change-password screen it cannot leave (except to log out)
+until a real password is chosen.
+
 ## Tests
 
 ```bash

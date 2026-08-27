@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Forms;
 
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -31,11 +32,19 @@ class LoginForm extends Form
         $this->ensureIsNotRateLimited();
 
         if (! Auth::attempt($this->only(['email', 'password']), $this->remember)) {
-            RateLimiter::hit($this->throttleKey());
+            /*
+            | The real password did not match — try the temporary one issued
+            | by the forgot-password form before giving up. Both are live at
+            | once by design: mailing a password must not invalidate the one
+            | the account holder may still be using (§4).
+            */
+            if (! $this->attemptTemporaryPassword()) {
+                RateLimiter::hit($this->throttleKey());
 
-            throw ValidationException::withMessages([
-                'form.email' => trans('auth.failed'),
-            ]);
+                throw ValidationException::withMessages([
+                    'form.email' => trans('auth.failed'),
+                ]);
+            }
         }
 
         /*
@@ -57,6 +66,29 @@ class LoginForm extends Form
         Auth::user()->forceFill(['last_active_at' => now()])->saveQuietly();
 
         RateLimiter::clear($this->throttleKey());
+    }
+
+    /**
+     * Sign in with a mailed temporary password, if one is live.
+     *
+     * Flags the account so the next request is diverted to the change-password
+     * screen, and clears the temporary password immediately: it buys one
+     * sign-in, not a second credential that lingers.
+     */
+    protected function attemptTemporaryPassword(): bool
+    {
+        $user = User::where('email', $this->email)->first();
+
+        if (! $user || ! $user->matchesTemporaryPassword($this->password)) {
+            return false;
+        }
+
+        Auth::login($user, $this->remember);
+
+        $user->forceFill(['must_change_password' => true])->save();
+        $user->clearTemporaryPassword();
+
+        return true;
     }
 
     /**

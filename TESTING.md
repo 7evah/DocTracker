@@ -27,20 +27,20 @@ All passwords are `password`.
 
 | Role | Email | Name |
 |---|---|---|
-| Administrator | `admin@docflow.test` | Hamza El Badaoui |
-| Project Manager | `chef.projet@docflow.test` | Nadia Benchekroun |
-| Engineer | `ingenieur1@docflow.test` | Youssef Amrani |
-| Engineer | `ingenieur2@docflow.test` | Salma Tazi |
-| Reviewer | `verificateur1@docflow.test` | Karim Oulhaj |
-| Reviewer | `verificateur2@docflow.test` | Imane Rachidi |
-| Approver | `approbateur@docflow.test` | Rachid El Malki |
-| Viewer | `lecteur@docflow.test` | Leila Bouzid |
+| Administrator | `adminjesa@yopmail.com` | Hamza El Badaoui |
+| Project Manager | `chef.projet@yopmail.com` | Nadia Benchekroun |
+| Engineer | `ingenieur1@yopmail.com` | Youssef Amrani |
+| Engineer | `ingenieur2@yopmail.com` | Salma Tazi |
+| Reviewer | `verificateur1@yopmail.com` | Karim Oulhaj |
+| Reviewer | `verificateur2@yopmail.com` | Imane Rachidi |
+| Approver | `approbateur@yopmail.com` | Rachid El Malki |
+| Viewer | `lecteurjesa@yopmail.com` | Leila Bouzid |
 
 ---
 
 ## 1. Administrator — bootstrap the installation
 
-Log in as **admin@docflow.test**. Nothing else can be meaningfully tested
+Log in as **adminjesa@yopmail.com**. Nothing else can be meaningfully tested
 until this section is done: it creates the approval circuit every document
 will eventually pass through.
 
@@ -83,7 +83,7 @@ will eventually pass through.
 
 ## 2. Project Manager — create a project
 
-Log out, log in as **chef.projet@docflow.test**.
+Log out, log in as **chef.projet@yopmail.com**.
 
 - [ ] **Projects** (`/projects`) — empty. Click **Nouveau projet**.
   Create:
@@ -105,7 +105,7 @@ reviewers in section 4.*
 
 ## 3. Engineer — upload a document
 
-Log out, log in as **ingenieur1@docflow.test**.
+Log out, log in as **ingenieur1@yopmail.com**.
 
 - [ ] **Documents → Téléverser un document** (`/documents/create`). Select
   the project you just created, discipline **PI — Piping**, watch the
@@ -126,7 +126,7 @@ Log out, log in as **ingenieur1@docflow.test**.
 
 ## 4. Project Manager — assign a reviewer
 
-Log back in as **chef.projet@docflow.test**, open `PI-1023`.
+Log back in as **chef.projet@yopmail.com**, open `PI-1023`.
 
 - [ ] Bell shows the submission notification from section 3. Open the
   document from it.
@@ -139,7 +139,7 @@ Log back in as **chef.projet@docflow.test**, open `PI-1023`.
 
 ## 5. Reviewer — review, comment, request a revision
 
-Log out, log in as **verificateur1@docflow.test** (Karim Oulhaj).
+Log out, log in as **verificateur1@yopmail.com** (Karim Oulhaj).
 
 - [ ] Header bell shows **1** unread. Open it, click the notification —
   it marks read and lands you on the review.
@@ -154,7 +154,7 @@ Log out, log in as **verificateur1@docflow.test** (Karim Oulhaj).
 
 ## 6. Engineer — upload the revision
 
-Log back in as **ingenieur1@docflow.test**, open `PI-1023`.
+Log back in as **ingenieur1@yopmail.com**, open `PI-1023`.
 
 - [ ] **Historique des révisions** tab shows revision A. Click **Nouvelle
   révision**, upload a second file, add version notes referencing the
@@ -200,26 +200,26 @@ it once so you have seen both halves:
 
 ## 8. Reviewer — sign step 1 of the approval circuit
 
-Still as **verificateur1@docflow.test**:
+Still as **verificateur1@yopmail.com**:
 
 - [ ] On the same document's **Approbations** tab, click **Approuver** on
   the now-active step 1, confirm. It turns ✓, step 2 (Chef de projet)
-  activates, and **chef.projet@docflow.test** gets a notification.
+  activates, and **chef.projet@yopmail.com** gets a notification.
 
 ## 9. Project Manager — sign step 2
 
-- [ ] Log in as **chef.projet@docflow.test**, open the document's
+- [ ] Log in as **chef.projet@yopmail.com**, open the document's
   **Approbations** tab, **Approuver**, confirm. Step 2 turns ✓, step 3
-  activates, and **approbateur@docflow.test** gets a notification.
+  activates, and **approbateur@yopmail.com** gets a notification.
 
 ## 10. Approver — final signature
 
-Log in as **approbateur@docflow.test**.
+Log in as **approbateur@yopmail.com**.
 
 - [ ] Bell shows 1 unread. Open `/approvals` — the step is in your queue.
 - [ ] Open the document, **Approbations** tab, **Approuver**, confirm.
   Document status becomes **Approuvé**. All three steps show ✓.
-- [ ] `ingenieur1@docflow.test` (the document's author) should have
+- [ ] `ingenieur1@yopmail.com` (the document's author) should have
   received a "document approved" notification — log in as them to check
   the bell.
 - [ ] Go back to the **project** (`/projects`, open `OCP-GA-2026`) and
@@ -243,7 +243,7 @@ steps show as **Ignorée** rather than sitting pending forever.
 
 ## 12. Viewer — confirm read-only access
 
-Log in as **lecteur@docflow.test**.
+Log in as **lecteurjesa@yopmail.com**.
 
 - [ ] Projects, Documents, Reviews, Approvals, Tasks, Reports are all
   visible and readable.
@@ -252,7 +252,45 @@ Log in as **lecteur@docflow.test**.
   `/projects/create` or `/documents/create` returns a 403, not a form.
 - [ ] `/admin/*` routes all 403.
 
-## 13. Cross-cutting checks (any role with access)
+## 13. E-mail: notifications and the forgotten password
+
+The demo accounts all use `@yopmail.com`, a throwaway inbox needing no signup:
+open <https://yopmail.com>, type the address (without the domain), read what
+arrived. Nothing sends unless `MAIL_MAILER=smtp` is configured with a
+provider's credentials and `php artisan queue:work` is running — see
+[*Sending real e-mail*](README.md#sending-real-e-mail). With `MAIL_MAILER=log`
+the messages land in `storage/logs/laravel.log` instead, which is enough to
+check wording and layout.
+
+- [ ] Trigger any notification from the walkthrough above (submitting a
+  revision is the quickest). The mail should carry the JESA/DocFlow header,
+  say in one line what happened, and offer a single button straight to the
+  document — not a generic "log in and look around".
+- [ ] Click that button and confirm it lands on the right page. If it 404s,
+  `APP_URL` does not match the address you actually browse on.
+
+### Forgotten password
+
+- [ ] Log out. On the login screen click **Mot de passe oublié ?** and submit
+  `ingenieur1@yopmail.com`.
+- [ ] The confirmation is deliberately non-committal (*"Si un compte
+  existe…"*) — submit a made-up address and confirm you get the same answer,
+  so the form cannot be used to find out who has an account.
+- [ ] Read the mail: it contains a **temporary password** in a boxed,
+  monospaced panel, says it lasts 60 minutes and works once, and says the
+  existing password still works.
+- [ ] **Confirm that last part is true:** log in with `password` as normal. It
+  should still work — requesting a reset must not lock anyone out, which is
+  why the temporary password is stored beside the real one rather than
+  replacing it.
+- [ ] Now log in with the temporary password instead. You land on **Choisissez
+  un nouveau mot de passe** and cannot leave: try navigating to `/documents`
+  and confirm you are returned to it. Only **Déconnexion** gets you out.
+- [ ] Set a new password. You are released to the dashboard.
+- [ ] Log out and back in with the new password — and confirm the temporary
+  one no longer works. It buys one sign-in, not a second standing credential.
+
+## 14. Cross-cutting checks (any role with access)
 
 - [ ] **Reports** (`/reports`, as `chef.projet` or `admin`) — cycle
   through all nine reports in the left rail. Confirm the bar chart appears
@@ -263,7 +301,7 @@ Log in as **lecteur@docflow.test**.
   - [ ] Click **Exporter en Excel** — a real `.xlsx` downloads and opens.
   - [ ] Click **Exporter en PDF** — a real PDF downloads, header shows the
     JESA branding and the filters that were applied.
-  - [ ] As **lecteur@docflow.test**: the export buttons are absent
+  - [ ] As **lecteurjesa@yopmail.com**: the export buttons are absent
     entirely (viewing ≠ exporting).
 - [ ] **Notifications** (`/notifications`) — filter All/Unread/Read, mark
   one read, mark one unread, **Tout marquer comme lu**, delete one,

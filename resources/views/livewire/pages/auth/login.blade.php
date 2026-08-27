@@ -89,8 +89,9 @@ new #[Layout('components.layouts.auth')] class extends Component
     @if (app()->environment('local'))
         <div class="mt-8 rounded-lg border border-dashed border-zinc-300 p-3 text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
             <p class="font-medium text-zinc-700 dark:text-zinc-300">{{ __('Comptes de démonstration') }}</p>
-            <p class="mt-1">admin@docflow.test · chef.projet@docflow.test · ingenieur1@docflow.test</p>
-            <p>verificateur1@docflow.test · approbateur@docflow.test · lecteur@docflow.test</p>
+            <p class="mt-1">adminjesa@yopmail.com · chef.projet@yopmail.com</p>
+            <p>ingenieur1@yopmail.com · verificateur1@yopmail.com</p>
+            <p>approbateur@yopmail.com · lecteurjesa@yopmail.com</p>
             <p class="mt-1">{{ __('Mot de passe') }} : <code class="font-mono">password</code></p>
         </div>
     @endif

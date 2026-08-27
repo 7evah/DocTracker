@@ -67,7 +67,7 @@ class SeededDataSmokeTest extends TestCase
 
     public function test_every_seeded_document_renders_with_every_tab(): void
     {
-        $admin = User::where('email', 'admin@docflow.test')->firstOrFail();
+        $admin = User::where('email', 'adminjesa@yopmail.com')->firstOrFail();
 
         $documents = Document::all();
         $this->assertGreaterThan(0, $documents->count(), 'Expected the seeder to produce documents.');

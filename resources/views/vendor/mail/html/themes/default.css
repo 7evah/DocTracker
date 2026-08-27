@@ -1,0 +1,300 @@
+/*
+| DocFlow e-mail theme.
+|
+| Mirrors the application shell: the same brand navy (#003a70 / brand-700),
+| the same zinc text ramp, the same rounded panel on a tinted page. Laravel
+| inlines this file into every message before sending, which is why it is
+| written as plain, widely-supported CSS — no custom properties, no flexbox,
+| no media-query-only rules that Outlook would drop (§44).
+|
+| Dark mode is deliberately left alone: clients invert mail unpredictably and
+| a half-applied dark theme reads worse than a light one everywhere.
+*/
+
+/* Base */
+
+body {
+    background-color: #f4f6f9;
+    color: #18181b;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-text-size-adjust: none;
+    margin: 0;
+    padding: 0;
+    width: 100% !important;
+}
+
+body,
+td,
+th,
+p,
+a,
+span,
+div,
+li {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+h1 {
+    color: #18181b;
+    font-size: 20px;
+    font-weight: 600;
+    margin-top: 0;
+    text-align: left;
+}
+
+h2 {
+    color: #18181b;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 0;
+    text-align: left;
+}
+
+h3 {
+    color: #18181b;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 0;
+    text-align: left;
+}
+
+p {
+    color: #3f3f46;
+    font-size: 15px;
+    line-height: 1.6em;
+    margin-top: 0;
+    text-align: left;
+}
+
+p.sub {
+    font-size: 12px;
+}
+
+img {
+    max-width: 100%;
+    border: none;
+}
+
+a {
+    color: #005a9c;
+    text-decoration: underline;
+}
+
+/* Layout */
+
+.wrapper {
+    background-color: #f4f6f9;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+}
+
+.content {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+}
+
+/* Header */
+
+.header {
+    padding: 28px 0;
+    text-align: center;
+}
+
+.header a {
+    color: #18181b;
+    font-size: 18px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+/* Body: the white card, matching x-panel in the app */
+
+.body {
+    background-color: #f4f6f9;
+    border-bottom: 1px solid #f4f6f9;
+    border-top: 1px solid #f4f6f9;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+}
+
+.inner-body {
+    background-color: #ffffff;
+    border-color: #e4e4e7;
+    border-radius: 12px;
+    border-width: 1px;
+    border-style: solid;
+    margin: 0 auto;
+    padding: 0;
+    width: 570px;
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 570px;
+}
+
+.content-cell {
+    max-width: 100vw;
+    padding: 32px;
+}
+
+/* Buttons: the app's primary button, squared off to the same radius */
+
+.action {
+    margin: 30px auto;
+    padding: 0;
+    text-align: center;
+    width: 100%;
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+}
+
+.button {
+    border-radius: 8px;
+    color: #ffffff;
+    display: inline-block;
+    overflow: hidden;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 12px 24px;
+    -webkit-text-size-adjust: none;
+    box-sizing: border-box;
+}
+
+.button-blue,
+.button-primary {
+    background-color: #003a70;
+    border-bottom: 8px solid #003a70;
+    border-left: 18px solid #003a70;
+    border-right: 18px solid #003a70;
+    border-top: 8px solid #003a70;
+}
+
+.button-green,
+.button-success {
+    background-color: #15803d;
+    border-bottom: 8px solid #15803d;
+    border-left: 18px solid #15803d;
+    border-right: 18px solid #15803d;
+    border-top: 8px solid #15803d;
+}
+
+.button-red,
+.button-error {
+    background-color: #b91c1c;
+    border-bottom: 8px solid #b91c1c;
+    border-left: 18px solid #b91c1c;
+    border-right: 18px solid #b91c1c;
+    border-top: 8px solid #b91c1c;
+}
+
+/* Panel: used for the temporary password and other things worth isolating */
+
+.panel {
+    border-left: 4px solid #003a70;
+    margin: 21px 0;
+}
+
+.panel-content {
+    background-color: #eef4fa;
+    color: #18181b;
+    padding: 18px;
+}
+
+.panel-content p {
+    color: #18181b;
+}
+
+.panel-item {
+    padding: 0;
+}
+
+.panel-item p:last-of-type {
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+/* Tables */
+
+.table table {
+    margin: 30px auto;
+    width: 100%;
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+}
+
+.table th {
+    border-bottom: 1px solid #e4e4e7;
+    margin: 0;
+    padding-bottom: 8px;
+    color: #71717a;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.table td {
+    color: #3f3f46;
+    font-size: 15px;
+    line-height: 18px;
+    margin: 0;
+    padding: 10px 0;
+}
+
+.content-cell {
+    max-width: 100vw;
+    padding: 32px;
+}
+
+/* Subcopy: the "if the button does not work" fallback */
+
+.subcopy {
+    border-top: 1px solid #e4e4e7;
+    margin-top: 25px;
+    padding-top: 25px;
+}
+
+.subcopy p {
+    font-size: 13px;
+    color: #71717a;
+}
+
+.subcopy a {
+    color: #71717a;
+}
+
+/* Footer */
+
+.footer {
+    margin: 0 auto;
+    padding: 0;
+    text-align: center;
+    width: 570px;
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 570px;
+}
+
+.footer p {
+    color: #a1a1aa;
+    font-size: 12px;
+    text-align: center;
+}
+
+.footer a {
+    color: #a1a1aa;
+    text-decoration: underline;
+}

@@ -25,7 +25,7 @@ class DemoUserSeeder extends Seeder
         $users = [
             [
                 'name' => 'Hamza El Badaoui',
-                'email' => 'admin@docflow.test',
+                'email' => 'adminjesa@yopmail.com',
                 'department' => 'Systèmes d’information',
                 'job_title' => 'Administrateur applicatif',
                 'phone' => '+212 522 00 00 01',
@@ -33,7 +33,7 @@ class DemoUserSeeder extends Seeder
             ],
             [
                 'name' => 'Nadia Benchekroun',
-                'email' => 'chef.projet@docflow.test',
+                'email' => 'chef.projet@yopmail.com',
                 'department' => 'Direction de projets',
                 'job_title' => 'Chef de projet senior',
                 'phone' => '+212 522 00 00 02',
@@ -41,7 +41,7 @@ class DemoUserSeeder extends Seeder
             ],
             [
                 'name' => 'Youssef Amrani',
-                'email' => 'ingenieur1@docflow.test',
+                'email' => 'ingenieur1@yopmail.com',
                 'department' => 'Tuyauterie',
                 'job_title' => 'Ingénieur tuyauterie',
                 'phone' => '+212 522 00 00 03',
@@ -49,7 +49,7 @@ class DemoUserSeeder extends Seeder
             ],
             [
                 'name' => 'Salma Tazi',
-                'email' => 'ingenieur2@docflow.test',
+                'email' => 'ingenieur2@yopmail.com',
                 'department' => 'Génie civil',
                 'job_title' => 'Ingénieure génie civil',
                 'phone' => '+212 522 00 00 04',
@@ -57,7 +57,7 @@ class DemoUserSeeder extends Seeder
             ],
             [
                 'name' => 'Karim Oulhaj',
-                'email' => 'verificateur1@docflow.test',
+                'email' => 'verificateur1@yopmail.com',
                 'department' => 'Électricité',
                 'job_title' => 'Ingénieur électricité senior',
                 'phone' => '+212 522 00 00 05',
@@ -65,7 +65,7 @@ class DemoUserSeeder extends Seeder
             ],
             [
                 'name' => 'Imane Rachidi',
-                'email' => 'verificateur2@docflow.test',
+                'email' => 'verificateur2@yopmail.com',
                 'department' => 'Procédés',
                 'job_title' => 'Ingénieure procédés senior',
                 'phone' => '+212 522 00 00 06',
@@ -73,7 +73,7 @@ class DemoUserSeeder extends Seeder
             ],
             [
                 'name' => 'Rachid El Malki',
-                'email' => 'approbateur@docflow.test',
+                'email' => 'approbateur@yopmail.com',
                 'department' => 'Direction technique',
                 'job_title' => 'Directeur technique',
                 'phone' => '+212 522 00 00 07',
@@ -81,7 +81,7 @@ class DemoUserSeeder extends Seeder
             ],
             [
                 'name' => 'Leila Bouzid',
-                'email' => 'lecteur@docflow.test',
+                'email' => 'lecteurjesa@yopmail.com',
                 'department' => 'Qualité',
                 'job_title' => 'Chargée qualité documentaire',
                 'phone' => '+212 522 00 00 08',
