@@ -54,16 +54,9 @@
             @endcan
 
             @can('delete', $project)
-                @if ($project->canBeDeleted())
-                    <flux:modal.trigger name="delete-project">
-                        <flux:button icon="trash" variant="danger">{{ __('common.actions.delete') }}</flux:button>
-                    </flux:modal.trigger>
-                @else
-                    {{-- Explain why rather than silently hiding the action (§37). --}}
-                    <flux:button icon="trash" variant="danger" disabled :tooltip="__('projects.messages.delete_blocked')">
-                        {{ __('common.actions.delete') }}
-                    </flux:button>
-                @endif
+                <flux:modal.trigger name="delete-project">
+                    <flux:button icon="trash" variant="danger">{{ __('common.actions.delete') }}</flux:button>
+                </flux:modal.trigger>
             @endcan
         </div>
     </div>
@@ -453,6 +446,18 @@
                         {{ __('projects.messages.delete_confirm') }}
                         {{ __('common.confirm.irreversible') }}
                     </flux:subheading>
+
+                    {{-- Name the collateral. The documents go with the project,
+                         so the count is the part worth reading twice (§37). --}}
+                    @php $atRisk = $project->documentsAtRisk(); @endphp
+
+                    @if ($atRisk > 0)
+                        <flux:callout variant="warning" icon="exclamation-triangle" class="mt-3">
+                            <flux:callout.text>
+                                {{ trans_choice('projects.messages.delete_cascade', $atRisk, ['count' => $atRisk]) }}
+                            </flux:callout.text>
+                        </flux:callout>
+                    @endif
                 </div>
 
                 <div class="flex justify-end gap-2">

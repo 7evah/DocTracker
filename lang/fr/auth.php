@@ -2,7 +2,15 @@
 
 return [
 
-    'failed' => 'Ces identifiants ne correspondent à aucun compte.',
+    /*
+    | Deliberately says "or", and never which of the two was wrong: telling
+    | someone the address exists but the password is wrong turns the login
+    | form into a way of discovering who holds an account (§39). Being vague
+    | is the point — being inaccurate was not. The previous wording claimed
+    | the credentials matched *no account*, which reads as "this address is
+    | unknown" to somebody who has simply mistyped their password.
+    */
+    'failed' => 'Adresse e-mail ou mot de passe incorrect.',
     'password' => 'Le mot de passe est incorrect.',
     'throttle' => 'Trop de tentatives de connexion. Réessayez dans :seconds secondes.',
     'inactive' => 'Ce compte est désactivé. Contactez un administrateur.',

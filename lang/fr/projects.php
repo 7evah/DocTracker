@@ -86,8 +86,8 @@ return [
         'created' => 'Projet créé avec succès.',
         'updated' => 'Projet mis à jour.',
         'deleted' => 'Projet supprimé.',
-        'delete_confirm' => 'Supprimer définitivement ce projet ?',
-        'delete_blocked' => 'Impossible de supprimer un projet contenant des documents. Changez plutôt son statut.',
+        'delete_confirm' => 'Supprimer ce projet ?',
+        'delete_cascade' => ':count document sera supprimé avec le projet, ainsi que ses révisions, revues et approbations.|:count documents seront supprimés avec le projet, ainsi que leurs révisions, revues et approbations.',
     ],
 
     'overdue' => 'Échéance dépassée',

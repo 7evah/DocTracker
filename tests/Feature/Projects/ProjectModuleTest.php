@@ -16,6 +16,7 @@ use App\Models\DocumentVersion;
 use App\Models\Project;
 use App\Models\Review;
 use App\Models\User;
+use App\Support\Permissions;
 use Database\Seeders\DisciplineSeeder;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -246,10 +247,56 @@ class ProjectModuleTest extends TestCase
     */
 
     /**
-     * The integrity rule must hold for administrators too, who bypass every
-     * policy via Gate::before — so it cannot live in the policy.
+     * A project holding documents used to be undeletable outright, which made
+     * any project that had ever received one upload permanent for every role.
+     * It now goes, and takes its documents with it.
      */
-    public function test_a_project_holding_documents_cannot_be_deleted(): void
+    public function test_deleting_a_project_takes_its_documents_with_it(): void
+    {
+        $admin = $this->userWithRole(UserRole::Administrator);
+        $project = Project::factory()->create();
+
+        $document = Document::factory()->create([
+            'project_id' => $project->id,
+            'discipline_id' => Discipline::first()->id,
+            'created_by' => $admin->id,
+        ]);
+
+        $project->refresh();
+
+        $this->assertSame(1, $project->documentsAtRisk());
+
+        Livewire::actingAs($admin)
+            ->test(ProjectShow::class, ['project' => $project])
+            ->call('delete');
+
+        $this->assertSoftDeleted($project);
+
+        // Soft on both sides: nothing is destroyed, so the revisions, reviews
+        // and approvals hanging off the document survive in the database.
+        $this->assertSoftDeleted($document);
+        $this->assertNotNull(Document::withTrashed()->find($document->id));
+    }
+
+    /** The cascade holds however the project is deleted, not just via the UI. */
+    public function test_the_cascade_is_not_limited_to_the_component(): void
+    {
+        $admin = $this->userWithRole(UserRole::Administrator);
+        $project = Project::factory()->create();
+
+        $document = Document::factory()->create([
+            'project_id' => $project->id,
+            'discipline_id' => Discipline::first()->id,
+            'created_by' => $admin->id,
+        ]);
+
+        $project->delete();
+
+        $this->assertSoftDeleted($document);
+    }
+
+    /** Documents deleted with a project are not resurrected by an unrelated query. */
+    public function test_documents_of_a_deleted_project_stay_out_of_listings(): void
     {
         $admin = $this->userWithRole(UserRole::Administrator);
         $project = Project::factory()->create();
@@ -260,16 +307,31 @@ class ProjectModuleTest extends TestCase
             'created_by' => $admin->id,
         ]);
 
-        $project->refresh();
+        $project->delete();
 
-        $this->assertTrue($admin->can('delete', $project), 'Admin holds the permission…');
-        $this->assertFalse($project->canBeDeleted(), '…but the integrity rule still blocks it.');
+        $this->assertSame(0, Document::query()->count());
+    }
 
-        Livewire::actingAs($admin)
-            ->test(ProjectShow::class, ['project' => $project])
-            ->call('delete');
+    /**
+     * Deleting a project is an administrator's job.
+     *
+     * It takes every document in the project with it, so it is not a call a
+     * project manager should be able to make on their own — they can archive
+     * or complete a project instead. Asserted against the shipped defaults
+     * because the live database had drifted: project_manager had been granted
+     * projects.delete at some point and nothing caught it.
+     */
+    public function test_only_administrators_may_delete_a_project(): void
+    {
+        $granted = [];
 
-        $this->assertNotSoftDeleted($project);
+        foreach (Permissions::forRoles() as $role => $permissions) {
+            if (in_array(Permissions::PROJECTS_DELETE, $permissions, true)) {
+                $granted[] = $role;
+            }
+        }
+
+        $this->assertSame([UserRole::Administrator->value], $granted);
     }
 
     public function test_an_empty_project_can_be_deleted(): void
@@ -278,7 +340,7 @@ class ProjectModuleTest extends TestCase
         $project = Project::factory()->create();
 
         $this->assertTrue($admin->can('delete', $project));
-        $this->assertTrue($project->canBeDeleted());
+        $this->assertSame(0, $project->documentsAtRisk());
 
         Livewire::actingAs($admin)
             ->test(ProjectShow::class, ['project' => $project])

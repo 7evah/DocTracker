@@ -131,16 +131,33 @@ class Project extends Model
     }
 
     /**
-     * A project holding documents must not be removed — those documents carry
-     * review and approval history (§34). Change its status to Completed or
-     * Cancelled instead.
+     * Deleting a project takes its documents with it.
      *
-     * This is an integrity rule rather than a permission, so it holds for
-     * every role including administrators.
+     * A project holding documents used to be undeletable outright, which made
+     * any project that had ever received a single upload permanent — there
+     * was no way back for one created by mistake, for any role. Cascading is
+     * safe here because both models are soft-deleted: nothing is destroyed,
+     * the revisions, reviews and approvals hanging off those documents stay
+     * in the database, and the stored files are untouched (§34).
+     *
+     * Done as a model event rather than in the component so it holds however
+     * the project is deleted — UI, console, or a future bulk action.
      */
-    public function canBeDeleted(): bool
+    protected static function booted(): void
     {
-        return $this->documents()->doesntExist();
+        static::deleting(function (self $project): void {
+            $project->documents()->get()->each(
+                fn (Document $document) => $project->isForceDeleting()
+                    ? $document->forceDelete()
+                    : $document->delete(),
+            );
+        });
+    }
+
+    /** Documents that would be removed along with this project. */
+    public function documentsAtRisk(): int
+    {
+        return $this->documents_count ?? $this->documents()->count();
     }
 
     /** True once the end date has passed while work is still open. */

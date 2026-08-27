@@ -8,7 +8,6 @@ use App\Models\Approval;
 use App\Models\Document;
 use App\Models\Project;
 use App\Models\Review;
-use Flux\Flux;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\View\View;
@@ -60,19 +59,8 @@ class Show extends Component
     {
         $this->authorize('delete', $this->project);
 
-        // Integrity rule, enforced server-side even though the UI hides the
-        // button — a crafted request must not slip past it (§39).
-        if (! $this->project->canBeDeleted()) {
-            $this->modal('delete-project')->close();
-
-            Flux::toast(
-                text: __('projects.messages.delete_blocked'),
-                variant: 'danger',
-            );
-
-            return;
-        }
-
+        // Project::booted() takes the documents down with it; the confirmation
+        // dialog says how many so this is never a surprise.
         $this->project->delete();
 
         session()->flash('toast', __('projects.messages.deleted'));
