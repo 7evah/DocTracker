@@ -31,7 +31,16 @@ class TemporaryPasswordIssued extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->subject(__('notifications.mail.temporary_password_subject'))
-            ->greeting(__('notifications.mail.greeting', ['name' => $notifiable->name]))
+            /*
+            | Not $notifiable->name directly: a notification may legitimately
+            | be addressed to an AnonymousNotifiable (Notification::route),
+            | which carries an address and nothing else. Reaching for a name
+            | that is not there fails while rendering the message, which reads
+            | like a mail fault and is not one.
+            */
+            ->greeting(__('notifications.mail.greeting', [
+                'name' => $notifiable->name ?? __('notifications.mail.greeting_fallback'),
+            ]))
             ->line(__('passwords.temporary.intro'))
             /*
             | Raw HTML rather than markdown bold: this is a string somebody has

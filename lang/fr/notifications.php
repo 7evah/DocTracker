@@ -52,6 +52,7 @@ return [
 
     'mail' => [
         'greeting' => 'Bonjour :name,',
+        'greeting_fallback' => 'Bonjour,',
         'salutation' => 'Cordialement, l’équipe DocFlow',
         'deadline' => 'Échéance : :date',
         'review_assigned_subject' => 'DocFlow — :number à vérifier',

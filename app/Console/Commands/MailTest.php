@@ -2,10 +2,12 @@
 
 namespace App\Console\Commands;
 
+use App\Models\User;
 use App\Notifications\TemporaryPasswordIssued;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -46,10 +48,23 @@ class MailTest extends Command
 
         try {
             if ($this->option('design')) {
-                // Notification::route sends on demand, so no account is touched
-                // and nothing depends on a queue worker being current.
-                Notification::route('mail', $recipient)
-                    ->notify((new TemporaryPasswordIssued('EXEMPLE12345'))->onConnection('sync'));
+                /*
+                | A real User, not Notification::route(): the anonymous
+                | notifiable that route() builds has no name, department or
+                | anything else a notification might greet somebody by, so it
+                | fails while rendering rather than while sending — precisely
+                | the distinction this command exists to make.
+                |
+                | An unsaved instance is enough when the address belongs to
+                | nobody: it routes on the email attribute and touches no row.
+                */
+                $notifiable = User::where('email', $recipient)->first()
+                    ?? tap(new User, fn (User $user) => $user->forceFill([
+                        'name' => Str::headline(Str::before($recipient, '@')),
+                        'email' => $recipient,
+                    ]));
+
+                $notifiable->notifyNow(new TemporaryPasswordIssued('EXEMPLE12345'));
             } else {
                 Mail::raw(
                     'DocFlow test message. If you are reading this, SMTP is configured correctly.',
