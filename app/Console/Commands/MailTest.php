@@ -46,6 +46,21 @@ class MailTest extends Command
             return self::FAILURE;
         }
 
+        /*
+        | Brevo issues two credentials that look interchangeable and are not:
+        | an API key (xkeysib-...) for the REST API, and an SMTP key
+        | (xsmtpsib-...) for the relay. Pasting the first into MAIL_PASSWORD
+        | gets a bare 535 with no indication that the *kind* of key is wrong,
+        | so name it before spending an attempt on it.
+        */
+        if (str_starts_with((string) config('mail.mailers.smtp.password'), 'xkeysib-')) {
+            $this->error('MAIL_PASSWORD is a Brevo API key (xkeysib-...), which the SMTP relay does not accept.');
+            $this->line('  Generate an SMTP key instead: Brevo → SMTP & API → the SMTP tab → Generate a new SMTP key.');
+            $this->line('  It starts with xsmtpsib-, and MAIL_USERNAME is the login shown beside it (…@smtp-brevo.com).');
+
+            return self::FAILURE;
+        }
+
         try {
             if ($this->option('design')) {
                 /*
@@ -93,8 +108,9 @@ class MailTest extends Command
     private function hintFor(string $message): string
     {
         return match (true) {
-            str_contains($message, '535') || stripos($message, 'authentication') !== false => 'The provider rejected the credentials. For Brevo, MAIL_PASSWORD is the SMTP key from '
-                    .'SMTP & API → SMTP, not your account password, and MAIL_USERNAME is the login shown beside it.',
+            str_contains($message, '535') || stripos($message, 'authentication') !== false => 'The provider rejected the credentials. For Brevo these come in pairs from SMTP & API → '
+                    .'the SMTP tab: MAIL_PASSWORD is an SMTP key (xsmtpsib-...), not the API key and not your '
+                    .'account password, and MAIL_USERNAME is the login shown beside it (…@smtp-brevo.com).',
 
             stripos($message, 'sender') !== false || str_contains($message, '550') => 'The provider refused the sender address. MAIL_FROM_ADDRESS has to be one the provider has '
                     .'verified — add and confirm it under Senders, or use an address you already verified.',
