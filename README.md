@@ -107,12 +107,34 @@ Two things that will otherwise bite:
   `http://localhost` while you serve on port 8000, every button in every
   notification 404s. Set it to the address people actually use.
 
+- **Restart the worker after changing code.** `queue:work` is a long-running
+  process holding the classes it loaded at boot, so editing a notification or
+  a model leaves the running worker using the old copy. It surfaces as a job
+  failing on something that plainly exists — `Undefined constant`, `Call to
+  undefined method`. `php artisan queue:restart` tells workers to finish the
+  current job and exit; start them again afterwards.
+
+Check the transport itself, synchronously, without the queue in the way:
+
+```bash
+php artisan mail:test you@yopmail.com          # plain line
+php artisan mail:test you@yopmail.com --design # the branded notification
+```
+
+It prints the settings in force, sends immediately, and translates the
+provider's complaint into the thing that needs changing. Use it whenever mail
+is not arriving: it is the shortest way to tell a credentials problem from a
+queue problem.
+
 Check delivery without involving a colleague:
 
 ```bash
 php artisan tinker --execute="App\Models\User::first()->notify(new App\Notifications\TemporaryPasswordIssued('TEST1234'));"
 php artisan queue:work --stop-when-empty
 ```
+
+If nothing arrives, `php artisan queue:failed` lists what broke and why, and
+`php artisan queue:retry all` re-runs those jobs once the cause is fixed.
 
 The demo accounts use `@yopmail.com`, a throwaway inbox with no signup: open
 <https://yopmail.com>, type the address, and read what arrived.
