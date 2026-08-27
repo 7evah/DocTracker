@@ -602,6 +602,47 @@ class DocumentModuleTest extends TestCase
     }
 
     /**
+     * Rejection is a verdict, not a dead end.
+     *
+     * "Rejeté" and "révision requise" differ in what they say about the
+     * document — unacceptable versus fixable — but not in the way out: both
+     * are answered with a corrected revision, which returns the document to
+     * Draft. Were a rejected document to refuse new revisions it could never
+     * progress again and the number would have to be abandoned, so
+     * DocumentStatus::acceptsNewRevision() deliberately includes it.
+     */
+    public function test_a_rejected_document_can_still_take_a_new_revision(): void
+    {
+        $engineer = $this->userWithRole(UserRole::Engineer);
+        $document = $this->documentFor($engineer, DocumentStatus::Rejected);
+
+        $this->assertTrue($document->status->acceptsNewRevision());
+        // …but not a straight resubmission of the file that was rejected.
+        $this->assertFalse($document->canBeSubmittedForReview());
+
+        app(DocumentService::class)->addRevision($document, $this->pdf('rev-b.pdf'), $engineer);
+
+        $document->refresh();
+
+        $this->assertSame('B', $document->current_revision);
+        $this->assertSame(DocumentStatus::Draft, $document->status);
+        $this->assertTrue($document->canBeSubmittedForReview());
+    }
+
+    /** Rejected is not terminal, so the metadata stays correctable too. */
+    public function test_a_rejected_documents_metadata_is_still_editable(): void
+    {
+        $engineer = $this->userWithRole(UserRole::Engineer);
+        $document = $this->documentFor($engineer, DocumentStatus::Rejected);
+
+        $this->assertTrue($document->acceptsMetadataEdit());
+
+        $this->actingAs($engineer)
+            ->get(route('documents.edit', $document))
+            ->assertOk();
+    }
+
+    /**
      * The approval was granted for this content, so the metadata is frozen
      * once approved or archived — including for administrators, which is why
      * the rule sits on the model rather than the policy.
