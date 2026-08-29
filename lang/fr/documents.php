@@ -11,7 +11,7 @@ return [
     'edit_heading' => 'Modifier :number',
 
     'fields' => [
-        'document_number' => 'Numéro de document',
+        'document_number' => 'n° de document',
         'title' => 'Titre',
         'description' => 'Description',
         'project' => 'Projet',
