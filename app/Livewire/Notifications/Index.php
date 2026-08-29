@@ -25,7 +25,7 @@ class Index extends Component
     #[Url(except: 'all')]
     public string $filter = 'all';
 
-    public int $perPage = 20;
+    public int $perPage = 10;
 
     public function updatedFilter(): void
     {

@@ -19,7 +19,7 @@ class Index extends Component
 {
     use WithPagination;
 
-    public int $perPage = 25;
+    public int $perPage = 15;
 
     #[Url(as: 'r', except: 'document_status_summary')]
     public string $report = 'document_status_summary';
